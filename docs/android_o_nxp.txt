@@ -1,0 +1,1325 @@
+=======================================================================================
+Build:
+
+source build/envsetup.sh
+lunch c3alfus_2-userdebug
+
+	TARGET_PRODUCT             :c3alfus_2
+	TARGET_BUILD_VARIANT       :userdebug
+	TARGET_PLATFORM_VERSION    :
+
+build/core/envsetup.mk
+	TARGET_DEVICE                  : c3alfus_2
+	board_config_mk                : device/fsl/c3alfus_2/BoardConfig.mk
+	TARGET_DEVICE_DIR              : device/fsl/c3alfus_2
+
+因此，设备的相关的第一个makefile文件即device/fsl/c3alfus_2/BoardConfig.mk
+	
+	
+Bootloader:
+
+make bootloader :
+build/make/core/Makefile: +1379
+
+
+make kernelimage :
+build/make/core/Makefile: +1379
+
+变量：
+TARGET_NO_KERNEL：
+TARGET_ARCH：
+KERNEL_NAME ：
+KERNEL_IMAGE_NAME ：
+KERNEL_OUT ：
+LOAD_KERNEL_ENTRY ：
+KERNEL_CFLAGS ：
+TARGET_KERNEL_DEFCONF ：
+KERNEL_CONFIG_DEFAULT ：
+LOAD_KERNEL_ENTRY ：
+KERNEL_ENV ：
+
+TARGET_BOARD_DTS_CONFIG ：
+PRODUCT_IMX_CAR ：
+
+PRODUCT_NAME ：mek_8q
+PRODUCT_DEVICE ：mek_8q
+
+
+=======================================================================================
+
+各位，好
+
+为方便大家共享及备份相关开发资料，在下述SVN服务中创建了Kernel专属路径。
+大家可以将需记录的或需组内共享的相关资料进行上传，方便大家的传阅并学习。
+希望大家能充分利用。
+
+SVN：共享或备份资料
+http://10.1.55.2/svn/IVI_Management/10.Workshop_Kernel
+
+WIKI：记录工作指南及开发经验
+http://10.1.49.188/dokuwiki/
+
+
+=======================================================================================
+
+WIFI and Touch驱动：
+drivers/net/wireless/qcacld-2.0/wlan.ko
+drivers/input/touchscreen/atmel_mxt_ts.ko
+
+
+=======================================================================================
+显示编译命令：
+make bootimage -j4 showcommands
+=======================================================================================
+
+冯卓，好
+
+GE12烧写步骤如下：
+
+1.烧写文件：
+       目录：
+       source\out\target\product\c3alfus_2\
+       uboot     ：u-boot-imx8qxp.imx
+       partition ：partition-table.img
+       kernel    ：boot-imx8qxp.img
+       system    ：system.img
+       vendor    ：vendor.img
+       vbmeta    ：vbmeta-imx8qxp.img
+
+2.上述文件copy到烧写工具的下述路径：
+       ok_android_o8.1.0_1.2.0_8qxp-beta2_tools\mfgtools\Profiles\Linux\OS Firmware\files\android\mek
+
+3.    拨码开关：
+       1上2下：烧写模式
+       1下2上：正常启动模式
+
+4.    烧写口必须使用蓝色的OTG口，必须使用usb hub连接电脑与车机
+       
+5.    开始烧写，运行下述工具
+       ok_android_o8.1.0_1.2.0_8qxp-beta2_tools\mfgtools/fgtool2-android-mx8qxp-mek-emmc.vbs
+
+以上
+
+
+=======================================================================================
+
+@all
+
+所有测试工具源码都在platform_testing/tests/tools目录下，生成的可执行文件在vendor/bin目录下。
+1，i2c测试工具（实现对i2c外设寄存器进行读写）
+i2c_rw op=read bus-id=0x0 dev-id=0x38 addr=0x1c （读示例，bus-id:I2C总线序号，dev-id:I2C从设备地址，addr：寄存器地址）
+i2c_rw op=write bus-id=0x0 dev-id=0x38 addr=0x34 data=0x11 （写示例，data：要写入寄存器数据）
+
+
+
+
+
+											
+2，memtool寄存器测试工具（实现对IMX8QXP I/O寄存器进行读写，调试gpio，camera功能时常用）
+Read memory: memtool [-8 | -16 | -32] <phys addr> <count>
+使用示例：
+memtool -32 0x5d0b0000 2 （参数含义，-32：一个寄存器大小是32bits，0x5d0b0000：寄存器地址，2：要读两个寄存器的值）
+Write memory: memtool [-8 | -16 | -32] <phys addr>=<value>
+
+
+
+
+
+											
+3，mx8_v4l2_cap_drm camera测试工具（调试V4L2驱动）
+参数解析：
+ -t <time>
+ -of save to file 
+ -l <device support list>
+ -cam <device index> 0bxxxx,xxxx
+ -log <log_level>   output all information, log_level should be 6example:
+./mx8_cap -cam 1      capture data from video0 and playback
+./mx8_cap -cam 3      capture data from video0/1 and playback
+./mx8_cap -cam 7 -of  capture data from video0~2 and save to 0~2.rgb32
+./mx8_cap -cam 255 -of  capture data from video0~7 and save to 0~7.rgb32
+使用示例：
+mx8_v4l2_cap_drm -cam 2 -of -fmt 1 -log 6 -t 1 -m 3 &
+
+
+
+
+
+
+
+
+											
+4，drmtest display测试工具（调试drm驱动，显示纯色画面）
+
+
+											
+5，gpio、端子对应关系及gpio调试方法：
+58222000.gpio  gpio8 base：224
+5d0f0000.gpio  gpio7 base：256
+5d0e0000.gpio  gpio6 base：288
+5d0d0000.gpio  gpio5 base：320
+5d0c0000.gpio  gpio4 base：352
+5d0b0000.gpio  gpio3 base：384
+5d0a0000.gpio  gpio2 base：416
+5d090000.gpio  gpio1 base：448
+5d080000.gpio  gpio0 base：p480
+
+gpio号换算方法的例子：
+947 PDB使用的是Soc QSPI0A_DQS_LSIO端子，对应GPIO是GPIO3_IO13，意思是控制器gpio3的第13个gpio管脚，
+对照上述表格，gpio3的base是384，那么最终转换后的GPIO是384+13=397
+
+如何通过Linux 命令调试GPIO（不同硬件平台通用）：
+1，echo 397 > /sys/class/gpio/export （导出397 GPIO到sys文件系统，创建文件目录：sys/class/gpio/gpio397）
+2，查看及控制GPIO状态：
+cat /sys/class/gpio/gpio397/value （查看GPIO电平状态，1：高电平，0：低电平）
+echo 1 > /sys/class/gpio/gpio397/value （拉高）
+echo 0 > /sys/class/gpio/gpio397/value （拉低）
+cat /sys/class/gpio/gpio397/direction （查看GPIO输入输出状态）
+
+PS:如果在驱动中已经配置GPIO状态，那么通过上述方法无法导出相应GPIO
+
+查看驱动中已经注册GPIO状态：
+cat /sys/kernel/debug/gpio
+
+
+=======================================================================================
+=======================================================================================
+
+Camera驱动：
+
+# camera hal v3
+IMX_CAMERA_HAL_V3 := true
+
+USE_ION_ALLOCATOR := true
+
+# define frame buffer count
+NUM_FRAMEBUFFER_SURFACE_BUFFERS := 5
+
+
+BOARD_KERNEL_CMDLINE := console=ttyLP0,115200 earlycon=lpuart32,0x5a060000,115200,115200 init=/init androidboot.console=ttyLP0 consoleblank=0 androidboot.hardware=neusoft androidboot.fbTileSupport=enable cma=928M@0x960M-0xe00M androidboot.primary_display=imx-drm firmware_class.path=/vendor/firmware
+
+
+TARGET_BOARD_DTS_CONFIG := imx8qxp:c3alfus_2_lvds1_927_lvds0_947.dtb
+TARGET_BOOTLOADER_CONFIG := imx8qxp:c3alfus_2_defconfig
+
+TARGET_KERNEL_DEFCONF := c3alfus_2_defconfig
+include device/fsl/c3alfus_2/build_id.mk
+
+
+INTERNAL_KERNEL_CMDLINE ：
+
+
+INSTALLED_BOOTIMAGE_TARGET  ： boot.img
+
+BOARD_KERNEL_OFFSET  : 0x00080000   KERNEL
+BOARD_SECOND_OFFSET  : 0x03000000   DTS
+BOARD_RAMDISK_OFFSET : 0x03200000   RAMFS
+
+
+BOARD_MKBOOTIMG_ARGS := --ramdisk_offset $(BOARD_RAMDISK_OFFSET) --second_offset $(BOARD_SECOND_OFFSET) --kernel_offset $(BOARD_KERNEL_OFFSET)
+
+
+MKBOOTIMG : 
+
+=======================================================================================
+
+kernel kconfig配置工具：
+脚本路径：
+vendor/nxp-opensource/kernel_imx/scripts
+
+脚本：
+diffconfig        ：可用来对比config文件差异
+ merge_config.sh  ：可用来merge两个config文件
+
+=======================================================================================
+
+单独编译Kernel的命令：
+make -C $(KERNEL_IMX_PATH)/kernel_imx Image ARCH=arm64 CROSS_COMPILE=`pwd`/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android- LOADADDR=0x80200000 KCFLAGS=-mno-android
+
+
+make -C $(KERNEL_IMX_PATH)/kernel_imx Image O=$(realpath $(KERNEL_OUT))
+make modules
+make dtbs
+
+
+=======================================================================================
+scfw: system control firmware (系统控制固件)
+特性：
+	• System Initialization and Boot
+	• System Controller Communication
+	• Power Management
+	• Resource Management
+	• Pad Configuration
+	• Timers
+	• Interrupts
+	• Miscellaneous
+
+当内存变更时，需使用mx8_ddr_tool工具生成ddr参数，并使用SCFW_compile编译工具，生成scfw_tcm.bin文件。然后，
+将scfw_tcm.bin文件，放置到vendor/nxp/fsl-proprietary/uboot-firmware/imx8q/路径，并重命名为mx8qx-scfw-tcm.bin。
+
+
+=======================================================================================
+USB相关：
+
+HUB HOST 82512 ：
+	驱动作用：IMX6仅仅配置相关寄存器，IMX8无需软件控制
+	芯片作用：HUB作用，将HOST口扩展为用户usb口及TBox口
+
+2549充电端口控制器：		   ：
+	驱动名称：usb_protect.c
+	驱动作用：
+		1.过流保护；当USB口的电流超过设定的阈值时，通过中断方式通知SOC，SOC可通过相关GPIO管脚断开USB电源
+		2.充电模式：具备DCP及CDP两种数据交换模式，可供SOC进行控制。
+		（根据STATUS GPIO的状态，来判断是否是手机设备。H->L可充电设备插入。常H则是U盘。）
+	
+	DTS文件：c3alfus_2_common.dts
+			usb_protect_otg {
+				compatible = "neusoft,usb_protect";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_usb_otg>;
+				usb_fault-gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
+				usb_status-gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>;
+				usb_ctl1-gpios = <&gpio4 2 GPIO_ACTIVE_HIGH>;
+				usb_power_en-gpios = <&gpio3 20 GPIO_ACTIVE_HIGH>;
+				usb_power_freq-gpios = <&gpio3 19 GPIO_ACTIVE_HIGH>;
+				usb_en_1-gpios = <&gpio4 1 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+
+			usb_protect_host {
+				compatible = "neusoft,usb_protect";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_usb_host>;
+				usb_fault-gpios = <&gpio3 18 GPIO_ACTIVE_HIGH>;
+				usb_status-gpios = <&gpio3 22 GPIO_ACTIVE_HIGH>;
+				usb_ctl1-gpios = <&gpio3 17 GPIO_ACTIVE_HIGH>;
+				usb_power_en-gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
+				usb_en_1-gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+	
+	设备节点：
+		/sys/devices/platform/usb_protect_otg
+		/sys/devices/platform/usb_protect_host
+	
+	使用方法：
+		只读属性：
+			get_overcurrent_state 
+				0:未发生过电流
+				1：发生过电流
+			
+			get_load_status        
+				STATUS=charging：手机已连接
+				STATUS=non-charging；手机已断开
+		
+		
+		只写属性：
+			set_power_on
+				echo 1 > set_power_on   : 给设备供电
+				echo o > set_power_on   : 给设备供电
+			
+			set_charge_mode
+				echo 0 > set_charge_mode : 设置DCP模式
+				echo 1 > set_charge_mode : 设置CDP模式
+			
+
+=======================================================================================			
+OTG mode切换：
+	
+	驱动名称：
+		drivers/usb/chipidea/debug.c
+		drivers/usb/chipidea/core.c
+		drivers/usb/chipidea/ci_hdrc_imx.c
+		
+		DTS文件节点：
+		
+		fsl-imx8dx.dtsi
+			usbotg1: usb@5b0d0000 {
+				compatible = "fsl,imx8qm-usb", "fsl,imx27-usb";
+				reg = <0x0 0x5b0d0000 0x0 0x200>;
+				interrupt-parent = <&wu>;
+				interrupts = <GIC_SPI 267 IRQ_TYPE_LEVEL_HIGH>;
+				fsl,usbphy = <&usbphy1>;
+				fsl,usbmisc = <&usbmisc1 0>;
+				clocks = <&clk IMX8QXP_USB2_OH_AHB_CLK>;
+				ahb-burst-config = <0x0>;
+				tx-burst-size-dword = <0x10>;
+				rx-burst-size-dword = <0x10>;
+				#stream-id-cells = <1>;
+				power-domains = <&pd_conn_usbotg0>;
+				status = "disabled";
+			};
+		
+		c3alfus_2_common.dts
+			&usbotg1 {
+				dr_mode = "host";
+				srp-disable;
+				hnp-disable;
+				adp-disable;
+				power-polarity-active-high;
+				disable-over-current;
+				status = "okay";
+			};
+
+		
+	驱动作用：
+		OTG host/gadget功能切换
+	使用方法：
+		Set to host mode:
+			echo host > /sys/kernel/debug/ci_hdrc.0/role
+		Set to device mode:
+			echo gadget > /sys/kernel/debug/ci_hdrc.0/role
+
+		获取OTG的状态信息（不使用状态机的情况下）：
+		cat /sys/kernel/debug/ci_hdrc.0/role
+			0：host
+			1：gadget
+			
+		获取OTG的状态信息（使用状态机的情况下）：
+		cat /sys/kernel/debug/ci_hdrc.0/otg
+			0：host
+			1：gadget
+	
+	文档说明：Documentation/usb/chipidea.txt   #里面有说明，OTG设备主从切换的过程试验及方法
+	
+	HOST 1
+	add@/devices/platform/5b110000.cdns3/xhci-cdns3/usb1/1-1/1-1.1
+
+	HOST 2
+	add@/devices/platform/5b110000.cdns3/xhci-cdns3/usb1/1-1/1-1.2
+
+	OTG
+	add@/devices/platform/5b0d0000.usb/ci_hdrc.0/usb3/3-1
+
+=======================================================================================
+HOST:
+
+	驱动名称：Cadence,usb3
+	驱动文件：
+		driver/usb/cdns3/core.c
+		driver/usb/cdns3/host.c
+
+
+	usbotg3: cdns3@5b110000 {
+		compatible = "Cadence,usb3";
+		reg = <0x0 0x5B110000 0x0 0x10000>,
+			<0x0 0x5B130000 0x0 0x10000>,
+			<0x0 0x5B140000 0x0 0x10000>,
+			<0x0 0x5B160000 0x0 0x40000>,
+			<0x0 0x5B120000 0x0 0x10000>;
+		interrupt-parent = <&wu>;
+		interrupts = <GIC_SPI 271 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&clk IMX8QXP_USB3_LPM_CLK>,
+			<&clk IMX8QXP_USB3_BUS_CLK>,
+			<&clk IMX8QXP_USB3_ACLK>,
+			<&clk IMX8QXP_USB3_IPG_CLK>,
+			<&clk IMX8QXP_USB3_CORE_PCLK>;
+		clock-names = "usb3_lpm_clk", "usb3_bus_clk", "usb3_aclk",
+			"usb3_ipg_clk", "usb3_core_pclk";
+		power-domains = <&pd_conn_usb2>;
+		cdns3,usbphy = <&usbphynop1>;
+		status = "disabled";
+	};
+
+=======================================================================================
+init.rc结构如下：
+
+device/fsl/geelybase/init.rc:root/init.neusoft.rc
+device/fsl/geelybase/init.imx8qxp.rc:root/init.neusoft.imx8qxp.rc \
+device/fsl/geelybase/init.imx8qm.rc:root/init.neusoft.imx8qm.rc \
+device/fsl/geelybase/init.usb.rc:root/init.neusoft.usb.rc
+
+device/fsl/geelybase/init.neusoft.sd.rc:root/init.neusoft.sd.rc
+device/fsl/geelybase/init.neusoft.emmc.rc:root/init.neusoft.emmc.rc
+device/fsl/geelybase/init.neusoft.usb.configfs.rc:root/init.neusoft.usb.configfs.rc
+
+=======================================================================================
+ADB功能：
+
+	//init.rc
+	on property:persist.neu_usb.mode="ADB"
+		write /sys/bus/platform/devices/ci_hdrc.0/role gadget
+		setprop persist.sys.usb.config adb
+
+	//init.usb.configfs.rc
+	on property:sys.usb.config=adb && property:sys.usb.configfs=1
+		start adbd
+
+	on property:sys.usb.ffs.ready=1 && property:sys.usb.config=adb && property:sys.usb.configfs=1
+		write /config/usb_gadget/g1/configs/b.1/strings/0x409/configuration "adb"
+		symlink /config/usb_gadget/g1/functions/ffs.adb /config/usb_gadget/g1/configs/b.1/f1
+		write /config/usb_gadget/g1/UDC ${sys.usb.controller}
+		setprop sys.usb.state ${sys.usb.config}
+
+	//init.usb.rc
+	on property:persist.sys.usb.config=*
+		setprop sys.usb.config ${persist.sys.usb.config}
+		
+	on property:sys.usb.ffs.ready=1 && property:sys.usb.config=adb && property:sys.usb.configfs=1
+		write /config/usb_gadget/g1/idProduct 0x4ee7
+		write /config/usb_gadget/g1/idVendor 0x18d1
+		
+
+	代码部分：
+	/kernel_imx/driver/usb/gadget/configfs.c
+	/kernel_imx/driver/usb/gadget/function/f_tcm.c
+
+
+Ubuntu ADB环境配置：
+
+	ge12的ADB调试功能已可以使用。
+	基于ubuntu的adb环境配置，可供大家参考一下：
+	1.	编辑rules 
+	$sudo gedit /etc/udev/rules.d/51-android.rules
+
+	添加如下内容 
+	SUBSYSTEM==”usb”,ATTRS{idVendor}==”18d1”,ATTRS{idProduce}==”4ee7”,MODE=”0666”
+
+	然后保存退出，再设置一下权限 
+	$sudo chmod a+rx /etc/udev/rules.d/51-android.rules
+
+	2.	编辑另外一个rules 
+	$sudo gedit /lib/udev/rules.d/50-udev-default.rules
+
+	查找关键字”usb_device”，找到下面位置 
+	SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0664"
+	修改为：
+	SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0666"
+
+	3.	运行命令，重启udev： 
+	$sudo service udev restart 
+
+	4.	拔掉usb重新连上再执行： 
+	$adb kill-server 
+	$adb devices
+
+ADB功能开启方法：
+		$setproperty persist.neu_usb.mode ADB
+
+=======================================================================================
+ADB ubuntu环境配置：
+
+	通过dmesg查看adb设备的idVendor,idProduct
+		imx8设备ID
+			idVendor=18d1
+			idProduct=4ee7
+
+	编辑rules 
+	$sudo gedit /etc/udev/rules.d/51-android.rules
+
+	添加如下内容 
+	SUBSYSTEM==”usb”,ATTRS{idVendor}==”18d1”,ATTRS{idProduce}==”4ee7”,MODE=”0666”
+
+	然后保存退出，再设置一下权限 
+	$sudo chmod a+rx /etc/udev/rules.d/51-android.rules
+
+	可以编辑另外一个rules 
+	$sudo gedit /lib/udev/rules.d/50-udev-default.rules
+
+	查找关键字”usb_device”，找到下面位置 
+	SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0664"
+	修改为：
+	SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0666"
+
+	运行命令，重启udev： 
+	$sudo service udev restart 
+	或 $sudo /etc/init.d/udev restart
+
+	拔掉usb重新连上再执行： 
+	$adb kill-server 
+	$adb devices
+
+
+=======================================================================================
+
+Touch驱动：
+	驱动文件：drivers/input/touchscreen/atmel_mxt_ts.c
+	DTS文件：c3alfus_2.dts
+	DTS NODE：
+			ivi_bot_touch@4a{
+               compatible = "atmel,maxtouch";
+               reg = <0x4a>;
+               use_FPD_Link_INTB;
+               atmel,reset-gpio = <&gpio3 10 GPIO_ACTIVE_HIGH>;
+               atmel,irq-gpio = <&gpio2 0 GPIO_ACTIVE_LOW>;
+               atmel,irq_flags = <IRQ_TYPE_LEVEL_LOW>;
+               atmel,cfg_name = "maxtouch.raw";
+               atmel,input_name = "ivi_bot_touch";
+			};
+
+	GPIO：
+		LSIO.GPIO3.IO10 ：TP_RST_IVI             配置错误，需要重新配置
+		MIPI_DSI0.GPIO0.IO01 ：TP_INT_947_A
+		MIPI_DSI1.GPIO0.IO01 ：TP_INT_927
+		LSIO.GPIO3.IO16	：TP_RST_947
+		
+
+
+=======================================================================================
+Touch驱动：
+	驱动文件：drivers/input/touchscreen/mfd_ts.c
+	DTS文件：c3alfus_2.dts
+	DTS NODE：
+	
+
+=======================================================================================
+947驱动：
+	驱动文件：ds90ub947.c
+	DTS文件：c3alfus_2_common.dts
+		节点信息：
+				pinctrl_947_pdb: topdisplaylvds {
+					fsl,pins = <
+						SC_P_QSPI0A_DQS_LSIO_GPIO3_IO13		0x00000021
+					>;
+				};
+				
+				pinctrl_i2c0_mipi_lvds0: mipi_lvds0_i2c0_grp {
+					fsl,pins = <
+						SC_P_MIPI_DSI0_I2C0_SCL_MIPI_DSI0_I2C0_SCL 0xc6000020
+						SC_P_MIPI_DSI0_I2C0_SDA_MIPI_DSI0_I2C0_SDA 0xc6000020
+					>;
+				};
+	
+	DTS文件：c3alfus_2_lvds0_947.dtsi
+		节点信息：
+		&i2c0_mipi_lvds0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_i2c0_mipi_lvds0>, <&pinctrl_947_pdb>;
+			clock-frequency = <100000>;
+			status = "okay";
+
+			lvds-to-hdmi-bridge@0c {
+				compatible = "ti,ds90ub947";
+				reg = <0x0c>;
+				pdb_947-gpios = <&gpio3 13 GPIO_ACTIVE_HIGH>;
+
+				port {
+					ds90ub947_in: endpoint {
+						remote-endpoint = <&lvds0_out>;
+					};
+				};
+			};
+		};
+	
+	
+
+
+=======================================================================================
+DTS：
+	Pinctrl子系统：
+	
+	pinctrl_dt_to_map		：将dts文件中有关pinctrl的配置项解析出来
+	pinctrl_register		：将一个符合linux pinctrl子系统规范的结构pinctrl_desc，注册到pinctrl子系统中
+	
+	
+	数据结构：	
+		struct pinctrl_desc {
+			const char *name;
+			struct pinctrl_pin_desc const *pins; //描述每个pin的信息为何。
+			unsigned int npins; //表示可以控制多少个pin。pins和npins这两个成员就确定了一个pin controller所能控制的引脚信息。
+			const struct pinctrl_ops *pctlops;//全局的控制函数
+			const struct pinmux_ops *pmxops;//复用引脚的相关的操作函数
+			const struct pinconf_ops *confops; //用来配置引脚特性（如pull-up/pull-down）
+			struct module *owner;
+		};
+
+	devm_pinctrl_get		：获取pinctrl句柄
+	pinctrl_lookup_state	：
+	pinctrl_select_state	：设置pin state
+	
+	
+	of函数：
+		of_get_named_gpio
+	
+	ping gpio：
+		static inline int pinctrl_request_gpio(unsigned gpio) ; 
+		static inline void pinctrl_free_gpio(unsigned gpio) ; 
+		static inline int pinctrl_gpio_direction_input(unsigned gpio); 
+		static inline int pinctrl_gpio_direction_output(unsigned gpio);
+
+
+=======================================================================================
+关闭Log：
+	echo 1 > /proc/sys/kernel/printk
+
+=======================================================================================
+
+ 1）、jack-admin start-server 
+ 2）、jack-admin kill-server 
+ 3）、jack-admin list-server 
+ 4）、jack-admin uninstall-server 
+ 5）、mm -j32 showcommands &> mm.out 
+ 6）、jack-admin install-server jack-launcher.jar  jack-server-4.8.ALPHA.jar 
+ 7）、jack-admin dump-report 
+ 8）、jack-admin dump-re
+
+ 
+ 错误解决：
+ Communication error with Jack server (35)
+ 
+ 解决方法：
+ jack-admin list-server ：查看jack进程，进行删除即可
+ 
+ =======================================================================================
+947 I2C访问：
+ 
+清中断：
+i2c_rw op=read bus-id=0x01 dev-id=0x0c addr=0xc7
+ 
+读写
+i2c_rw op=write bus-id=0x01 dev-id=0x0c addr=0x data=0x01
+ 
+ 
+ 
+ 948 I2C访问：
+ 
+清中断：
+i2c_rw op=read bus-id=0x01 dev-id=0x2c addr=0xc7
+
+reset 948:
+i2c_rw op=write bus-id=0x01 dev-id=0x2c addr=0x01 data=0x01
+ 
+ =======================================================================================
+ echo 1 > /proc/sys/kernel/printk
+ 
+ =======================================================================================
+ 个人IP地址 如下：
+秦晓彬	10.1.48.242	255.255.254.0	10.1.48.1	　	2018/10/17
+秦晓彬	10.1.49.27	255.255.254.0	10.1.48.1	　	2018/10/17
+秦晓彬	10.1.48.131	255.255.254.0	10.1.48.1	　	2018/10/17   PC
+
+
+Imx6平台：
+秦晓彬	10.1.74.141	　	2018/10/23    //Kernel组服务器
+秦晓彬	10.1.74.187	　	2018/10/23    //Kernel组服务器
+
+Imx8平台：
+qinxb   10.1.74.196	　	2018/10/23    //Kernel组服务器    使用者：宋荣远，赵旭
+qinxb   10.1.74.134	　	2018/10/23    //Kernel组服务器	  使用者：杨一晨
+qinxb   10.1.74.159	　	2018/10/23    //Kernel组服务器	  使用者：秦晓彬，张建华
+qinxb   10.1.74.201	　	2018/10/23    //Kernel组服务器    使用者：武振宇，翟文博
+ =======================================================================================
+ 
+ 10.1.73.120
+ zjs
+ 123456
+ 
+ =======================================================================================
+ 资源使用情况统计：
+ 6个uart
+ UART0：debug调试口
+ UART1：蓝牙通信（BT audio）
+ UART2：GPS
+ 
+ 
+ 3个SPI
+ SPI0：升级功能
+ SPI1：
+ SPI2：RPC通信
+ 
+ 
+Imx音频接口主要包括如下几种：
+	SSI：
+	SAI（4个）：同步音频接口（Synchronous Audio Interface）
+		SAI0：
+			transmit/receive;
+			主声道，usb music
+		
+		SAI1：
+			transmit/receive;
+			连接：Nfore 3303
+			功能：BTphone
+		
+		SAI2：
+			receive only
+			连接：预留AK5701
+			功能：对mic输入后的模拟信号（xf6010的输出）进行AD转换
+		
+		SAI3：
+			receive only
+			连接：DSP 6638
+			功能：预留软件降噪，如果去掉xf6010的话，使用该接口进行参考音录入
+		
+	ESAI （2个）：增强的串行音频接口（Enhanced Serial Audio Interface）
+		连接：DSP 6638
+		功能：Navi通路，包括TTS，NAVI，VR，Carplay
+		
+	SPDIF：
+		SONY、PHILIPS数字音频接口的简称（SONY/PHILIPS Digital Interface）
+		连接：DSP 6638
+		功能：chime声道，Beep音
+		
+	ASRC （2个）：异步采样率变换器（Asynchronous Sample Rate Converter）
+		连接：问：哪些声卡可以配置？
+			  答: 全双工的声卡才可以使用ESAI
+		功能：对输入数据进行重采样
+
+=======================================================================================
+IMX8音频资源使用情况：
+	
+1.	因三个SAI设备，所以驱动三个SAI驱动
+	SAI0：主声道，BTphone，music  48K    仅输出   SOC主：
+	SAI1：Nfore 3303              16K    仅输出   CODEC主：
+	SAI2：预留软降噪              问：为什么设置为异步模式？？ 答：仅只有RX，没有TX
+	
+	问：为什么codec及dai均设置为dummy？
+	答：因6638均采用的是IOCTL的方式，为采用codecdai的方式，因此均采用dummy方式
+	
+2.	SPDIF
+	这一步只是驱动起来即可吗？
+	spdif-out:                   问：是什么意思？  答：表示仅可输出
+	SPDIF：输出beep音
+
+3.	ESAI：
+	均为codec主                 问：做从设备的原因是？   答：因6638接口资源限制，连接到6638的HOSTI2S0接口，该接口只能做主，因此，SOC的ESAI做从设备。
+	作用：
+	1.	输出NAVI、TTS、VR等 
+	2.	对mic数据进行重采样	
+	
+ =======================================================================================
+ 安装alsa-lib：
+ 
+ $sudo apt-get install libasound2-dev
+ //安装alsa-lib：
+ 
+ $sudo dpkg -L libasound2-dev
+ //查看安装的文件
+ 
+ sudo aplay ./1.wav
+ //进行播放
+ 
+ =======================================================================================
+ 
+ Audio专用术语
+
+ ASLA - Advanced Sound Linux Architecture
+ OSS - 以前的Linux音频体系结构，被ASLA取代并兼容
+ Codec - Coder/Decoder
+ I2S/PCM/AC97 - Codec与CPU间音频的通信协议/接口/总线
+
+ DAI - Digital Audio Interface 其实就是I2S/PCM/AC97
+ DAC - Digit to Analog Conversion
+ ADC - Analog to Digit Conversion
+ DSP - Digital Signal Processor
+
+ Mixer - 混音器，将来自不同通道的几种音频模拟信号混合成一种模拟信号
+ Mute - 消音，屏蔽信号通道
+ PCM - Pulse Code Modulation 一种从音频模拟信号转换成数字信号的技术，区别于PCM音频通信协议
+
+ 采样频率 - ADC的频率，每秒采样的次数，典型值如44.1KHZ
+ 量化精度 - 比如24bit，就是将音频模拟信号按照2的24次方进行等分
+
+ SSI - Serial Sound Interface
+ DAPM - Dynamic Audio Power Management
+ 
+ 
+ 
+ =======================================================================================
+ UART：（imx6）
+ 
+ 
+ 
+ =======================================================================================
+ UART：（imx8）
+	地址：
+	Start Address    End Address   Region Size   Allocation
+	5A09_0000        5A09_FFFF     64KB          LPUART3
+	5A08_0000        5A08_FFFF     64KB          LPUART2
+	5A07_0000        5A07_FFFF     64KB          LPUART1
+	5A06_0000        5A06_FFFF     64KB          LPUART0
+ 
+ 
+	DTS：
+			lpuart0: serial@5a060000 {
+				compatible = "fsl,imx8qm-lpuart";
+				reg = <0x0 0x5a060000 0x0 0x1000>;
+				interrupts = <GIC_SPI 225 IRQ_TYPE_LEVEL_HIGH>;
+				interrupt-parent = <&wu>;
+				clocks = <&clk IMX8QXP_UART0_CLK>,
+					 <&clk IMX8QXP_UART0_IPG_CLK>;
+				clock-names = "per", "ipg";
+				assigned-clocks = <&clk IMX8QXP_UART0_CLK>;
+				assigned-clock-rates = <80000000>;
+				power-domains = <&pd_dma_lpuart0>;
+				status = "disabled";
+			};
+	代码：
+		drivers/tty/serial/fsl_lpuart.c
+		
+	使用情况：
+		UART0：debug调试口
+		UART1：蓝牙通信（BT Audio）
+		UART2：GPS
+	
+=======================================================================================
+BTaudio音频流：
+蓝牙芯片数据---uart---SOC(蓝牙formware处理)------PCM-----DSP
+
+常见问题：
+	如果蓝牙formware处理能力差，会导致uart流控出错，PCM这边出现underrun，出现断音
+
+
+
+=======================================================================================
+
+音频流：
+       copy_from_user      DMA              I2S    AIF->DAC->PGA/Mixer
+            ^               ^                ^           ^
+            |               |                |           |
+userspace------>dma buffer----->I2S tx FIFO----->CODEC------>SPK/HP/Earp
+
+
+问题：
+1.	imx8或imx6的cpu dai是使用的是DMA方式？
+	sound/soc/fsl/imx-pcm-dma.c
+	sound/soc/fsl/imx-pcm-dma-v2.c
+
+
+2.	是否存在I2S驱动？在哪里？
+=======================================================================================
+=======================================================================================
+android O：
+V4L2框架：
+https://blog.csdn.net/gngshn/article/details/48422247
+
+代码：
+drivers/media/v4l2-core/v4l2-dev.c
+
+
+
+
+
+
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+ SPI驱动：
+ 
+ SPI（Serial Peripheral Interface）：串行的外围设备接口
+ SPI是"Serial Peripheral Interface" 的缩写，是一种四线制的同步串行通信接口，用来连接微控制器、传感器、存储设备，SPI设备分为主设备和从设备两种，用于通信和控制的四根线分别是：
+
+		CS    片选信号
+		SCK  时钟信号
+		MISO  主设备的数据输入、从设备的数据输出脚
+		MOSI  主设备的数据输出、从设备的数据输入脚
+		因为在大多数情况下，CPU或SOC一侧通常都是工作在主设备模式，所以，目前的Linux内核版本中，只实现了主模式的驱动框架。
+
+ SPI0:升级功能 
+ SPI2：RPC通信
+
+ 
+ 驱动：
+ 
+	地址：
+		Start Address    End Address   Region Size   Allocation
+		5A03_0000        5A03_FFFF     64KB          LPSPI3
+		5A02_0000        5A02_FFFF     64KB          LPSPI2
+		5A01_0000        5A01_FFFF     64KB          LPSPI1
+		5A00_0000        5A00_FFFF     64KB          LPSPI0
+ 
+ 
+	DTS：
+		&lpspi0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			fsl,spi-num-chipselects = <1>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lpspi0 &pinctrl_lpspi0_cs>;
+			cs-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
+			status = "okay";
+
+				updatedev: update@0 {
+						#address-cells = <1>;
+						#size-cells = <1>;
+						compatible = "spidev";
+						spi-max-frequency = <500000>;
+						reg = <0>;
+						spidev_name = "spidev.update";
+						status = "okay";
+				};
+		/*
+			codec_ak5701: ak5701@0 {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				compatible = "asahikasei,ak5701";
+				spi-max-frequency = <100000>;
+				ak5701-pdn-gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_ak5701>;
+				reg = <0>;
+			};
+		*/
+		};
+		
+		&lpspi2 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				fsl,spi-num-chipselects = <1>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_lpspi2 &pinctrl_lpspi2_cs>;
+				cs-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+				status = "okay";
+
+				spidev: spidev@0 {
+						#address-cells = <1>;
+						#size-cells = <1>;
+						compatible = "spidev";
+						spi-max-frequency = <500000>;
+						reg = <0>;
+						spidev_name = "spidev.rpc";
+						status = "okay";
+				};
+		};
+	
+	代码：
+		drivers/spi/spi-fsl-lpspi.c
+	
+	原理：
+
+ =======================================================================================
+ 
+ I2S原理：
+ 三根线：
+ LRCK：帧时钟，1：左声道 0：右声道;帧时钟等同采样率
+ BCLK：位时钟（或串行时钟：SCLK），对应数字音频中的每一位数据；其频率为：2*采样率*采样位数
+ SDATA：串行数据，采用2进制补码表示的音频数据
+ 
+ 
+ =======================================================================================
+ Audio驱动：
+ 
+ 	地址：
+		Start Address    End Address   Region Size   Allocation
+		5907_0000        5907_FFFF     64KB          SAI3
+		5906_0000        5906_FFFF     64KB          SAI2
+		5905_0000        5905_FFFF     64KB          SAI1
+		5904_0000        5904_FFFF     64KB          SAI0
+		
+		5902_0000        5902_FFFF     64KB          SPDIF0
+		5901_0000        5901_FFFF     64KB          ESAI0
+		5900_0000        5900_FFFF     64KB          ASRC0
+	
+	SAI:
+	
+		1.	// DTS相关文件：
+		sound-sai0-card {
+			compatible = "fsl,imx-sai-machine";
+			model = "sai0-card";
+			cpu-dai = <&sai0>;
+			//audio-codec = <&codec_neu>;
+			//codec_dai_str = "codec-sai0";
+			//asrc-controller = <&asrc0>;
+			//codec-master;
+			/*
+			audio-routing =
+				"CPU-Playback", "ASRC-Playback",
+				"ASRC-Capture", "CPU-Capture";
+			*/
+		};
+		sound-sai1-card {
+			compatible = "fsl,imx-sai-machine";
+			model = "sai1-card";
+			cpu-dai = <&sai1>;
+			//audio-codec = <&codec_neu>;
+			//codec_dai_str = "codec-sai1";
+			//asrc-controller = <&asrc0>;
+			codec-master;
+			/*
+			audio-routing =
+				"CPU-Playback", "ASRC-Playback",
+				"ASRC-Capture", "CPU-Capture";
+			*/
+		};
+		sound-sai2-card {
+			compatible = "fsl,imx-sai-machine";
+			model = "sai2-card";
+			cpu-dai = <&sai2>;
+			//audio-codec = <&codec_ak5701>;
+			//codec_dai_str = "ak5701-sai2";
+			fsl,sai-asynchronous;
+			//asrc-controller = <&asrc0>;
+			//codec-master;
+			//audio-routing =
+			//	"CPU-Playback", "ASRC-Playback",
+			//	"ASRC-Capture", "CPU-Capture";
+		};
+	
+	// ESAI
+	sound-esai0-card {
+		compatible = "fsl,imx-esai0-machine";
+		model = "esai-card";
+		esai-controller = <&esai0>;
+		//audio-codec = <&codec_neu>;
+		//asrc-controller = <&asrc0>;
+		codec-master;
+		//audio-routing =
+		//	"CPU-Playback", "ASRC-Playback",
+		//	"ASRC-Capture", "CPU-Capture";
+		clocks = <&clk IMX8QXP_AUD_MCLKOUT0>;
+		clock-names = "mclk";
+		power-domains = <&pd_mclk_out0>;
+		assigned-clocks = <&clk IMX8QXP_AUD_MCLKOUT0>;
+		assigned-clock-rates = <12288000>;
+		status = "okay";
+	};
+
+	// SPDIF
+	sound-spdif {
+		compatible = "fsl,imx-audio-spdif";
+		model = "imx-spdif";
+		spdif-controller = <&spdif0>;
+		//spdif-in;
+		spdif-out;
+	};
+ 
+ 
+ 声卡的参考驱动：
+	代码：
+		sound/soc/fsl/imx-wm8960.c
+ 
+ 
+ SAI声卡：
+	代码：
+		// machine 部分代码
+		sound/soc/fsl/imx-sai-audio.c
+		参考代码：
+		sound/soc/fsl/imx-wm8960.c
+		
+		CPU DAI：
+		sound/soc/fsl/fsl_esai.c
+		
+		Platform：
+		sound/soc/fsl/imx-pcm-dma-v2.c
+ 
+ ESAI声卡：
+	代码：
+		// machine 部分代码
+		sound/soc/fsl/imx-esai0-audio.c
+		参考代码：
+		sound/soc/fsl/imx-cs42888.c
+		
+		CPU DAI：
+		sound/soc/fsl/fsl_esai.c
+		
+		Platform：
+		sound/soc/fsl/imx-pcm-dma-v2.c
+		sound/soc/fsl/imx-pcm-dma.c
+		
+ SPDIF声卡： 
+	代码：
+		// machine 部分代码
+		sound/soc/fsl/fsl_spdif.c
+	
+ CPU DAI：
+	代码：
+		sound/soc/fsl/fsl_sai.c	
+		
+ =======================================================================================
+ 声卡的调试：
+ 1. 查看声卡的配置信息
+	/sys/kernel/debug/regmap
+	59010000.esai 59050000.sai 59820000.sai 59840000.amix 
+	59040000.sai  59060000.sai 59830000.sai
+	
+	
+ 2.	查看声卡的信息
+	$ls /proc/asound
+	card0 card2 cards   esaicard pcm      sai1card timers  
+	card1 card3 devices hwdep    sai0card sai2card version
+	
+	
+	$cat /proc/asound/cards 
+	geely_ge12a_qj_1wk:/proc/asound # cat /proc/asound/cards                                    
+		 0 [sai0card       ]: sai0-card - sai0-card
+							  sai0-card
+		 1 [sai1card       ]: sai1-card - sai1-card
+							  sai1-card
+		 2 [sai2card       ]: sai2-card - sai2-card
+							  sai2-card
+		 3 [esaicard       ]: esai-card - esai-card
+							  esai-card
+
+	
+ 3. 查看声卡的设备
+	/dev/snd
+	controlC0 controlC2 pcmC0D0c pcmC1D0c pcmC2D0c pcmC3D0c timer 
+	controlC1 controlC3 pcmC0D0p pcmC1D0p pcmC2D0p pcmC3D0p
+ 
+ 
+ 4.	sys
+	cd /sys/class/sound
+ 
+	geely_ge12a_qj_1wk:/sys/class/sound # ls
+		card0 card3     controlC2 pcmC0D0p pcmC2D0c pcmC3D0p 
+		card1 controlC0 controlC3 pcmC1D0c pcmC2D0p timer    
+		card2 controlC1 pcmC0D0c  pcmC1D0p pcmC3D0c
+ =======================================================================================
+ AMP代码：
+	drivers/misc/tdf8546.c
+ 
+ =======================================================================================
+ 
+I2C:
+	地址：
+	Start Address    End Address   Region Size   Allocation
+	5A83_0000        5A83_FFFF     64KB          I2C3
+	5A82_0000        5A82_FFFF     64KB          I2C2
+	5A81_0000        5A81_FFFF     64KB          I2C1
+	5A80_0000        5A80_FFFF     64KB          I2C0                 
+	
+	DTS：
+		
+	代码：
+		drivers/i2c/busses/i2c-imx-lpi2c.c
+ 
+ 
+ =======================================================================================
+ 显示：
+ 驱动：
+	drivers/gpu/drm/imx/imx-drm-core.c
+ 
+ 
+ =======================================================================================
+ cpu-dai：放入到component_list链表
+		imx_codec_dai[0].cpu_dai_name = dev_name(&cpu_pdev->dev); //fsl-sai
+		imx_codec_dai[0].platform_of_node = cpu_np; //&sai0
+ 
+ 		imx_codec_dai[0].name = "HiFi",
+		imx_codec_dai[0].stream_name = "HiFi",
+		imx_codec_dai[0].ops = &imx_hifi_ops,
+		imx_codec_dai[0].ignore_pmdown_time = 1,		
+		imx_codec_dai[0].codec_of_node	= NULL;
+		imx_codec_dai[0].codec_dai_name = "snd-soc-dummy-dai";
+		imx_codec_dai[0].codec_name= "snd-soc-dummy";
+		imx_codec_dai[0].cpu_dai_name = dev_name(&esai_pdev->dev); //esai0
+		imx_codec_dai[0].platform_of_node = esai_np;
+		
+		
+		data->card.num_links = 1;
+		data->card.dev = &pdev->dev;
+		data->card.owner = THIS_MODULE;
+		data->card->name = "esai-card"; //sai0-card sai1-card sai2-card
+		
+ 
+ 
+ =======================================================================================
+imx6声卡：
+ 
+SSI0：蓝牙
+	sound/soc/imx/imx-ssi0-card.c
+	
+	平台设备名称：
+		soc-audio.0
+		
+	设备文件：
+	/dev/snd/pcmC0D0c
+	/dev/snd/pcmC0D0p
+		
+SSI1：audio6
+	sound/soc/imx/imx-ssi1-card.c
+
+	平台设备名称：
+		soc-audio.1   //USB,BTPHONE
+		
+	设备文件：
+	/dev/snd/pcmC1D0c
+	/dev/snd/pcmC1D0p
+
+SSI2：audio5
+	sound/soc/imx/imx-ssi2-card.c
+	
+	平台设备名称：
+		soc-audio.2    // Carplay
+		
+	设备文件：
+	/dev/snd/pcmC2D0c
+	/dev/snd/pcmC2D0p
+		
+ESAI：
+	sound/soc/imx/imx-esai-card.c
+	
+	平台设备名称：
+		soc-audio.3
+		
+	/proc/asound/card3   //NAVI,VR,可录音
+	
+	设备文件：
+	/dev/snd/pcmC3D0c
+	/dev/snd/pcmC3D0p
+		
+SPDIF：beep音
+	sound/soc/imx/imx-spdif.c
+	
+	平台设备名称：
+		soc-audio.4
+	
+	设备文件：
+	/dev/snd/pcmC4D0c
+	/dev/snd/pcmC4D0p
+		
+
+AK5701：ADC
+	sound/soc/codecs/ak5701.c
+	
+	
+BT:
+	平台设备名称：
+		sound/soc/fsl/imx_bt_codec.c
+
+		
+ASRC:
+	drivers/mxc/asrc/mxc_asrc.c
+	
+	
+CODEC:
+	sound/soc/codecs/tef6638.c
+
+
+声卡驱动的注册方式：
+1.	在声卡驱动中创建platform_device，name：soc-audio
+2.	平台驱动程序会主动匹配到soc-core.c驱动中注册的platform_driver （name:soc-audio）
+3.	声卡在soc-core.c驱动的soc_probe函数中完成注册，注册函数为：ret = snd_soc_register_card(card);
+4.	在注册的过程中，snd_soc_instantiate_card函数会调用声卡驱动中的snd_soc_dai_link.init (ssi_dai_link_init)函数
+
+ =======================================================================================
+tinyplay使用：
+ 
+#lsof | grep pcm
+首先确认所使用的声卡是否被打开。仅在未打开的情况下才可以录音/回放。
+ 
+imx6平台录音流程：
+	================================================
+	音频 -> MIC -> xf6001 -> AK5701：ADC -> ESAI声卡
+	================================================
+	
+	录音：
+	#tinycap /data/test-16k.wav -D 3 -d 0 -c 2 -r 16000 -b 16  //使用esai声卡录音
+	#tinyplay data/48K.wav -D 1 -d 0                           //使用主声卡进行播放
+
+播放流程：
+android对声音通道进行了控制，使用某个声道的时候需要切换到该source。
+同时，需要确认该声道在未播放的时候，是否进行了静音处理（主声道一般在未播放的时候，采用静音处理）。
+ 
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+ =======================================================================================
+

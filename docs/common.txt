@@ -1,0 +1,2516 @@
+查看kernel的编译信息
+cat /proc/version
+
+================================================================================
+
+查看各emmc各分区情况
+root@CVQJ:/ # cat /proc/partitions
+major minor #blocks name
+
+179 0 15388672 mmcblk0
+179 1 8192 mmcblk0p1
+179 2 8192 mmcblk0p2
+179 3 1 mmcblk0p3
+179 4 13180928 mmcblk0p4
+179 5 1048575 mmcblk0p5
+179 6 1048575 mmcblk0p6
+179 7 8191 mmcblk0p7
+259 0 4095 mmcblk0p8
+259 1 32767 mmcblk0p9
+179 16 8192 mmcblk0boot1
+179 8 8192 mmcblk0boot0
+root@CVQJ:/ #
+
+================================================================================
+
+烧写Image
+
+echo 0 > /sys/block/mmcblk0boot0/force_ro
+dd if=u-boot.bin of=/dev/block/mmcblk0boot0 bs=512 seek=2 skip=2 && sync
+echo 1 > /sys/block/mmcblk0boot0/force_ro
+
+ 
+
+dd if=/udisk/single/22222222222222222/u-boot.bin of=/dev/block/mmcblk0boot0 && sync
+
+dd if=/udisk/single/22222222222222222/boot.img of=/dev/block/mmcblk0p1 && sync
+
+dd if=boot.img of=/dev/block/mmcblk0p1 && sync
+dd if=userdata.img of=/dev/block/mmcblk0p4 && sync
+dd if=recovery.img of=/dev/block/mmcblk0p2 && sync
+dd if=system.img of=/dev/block/mmcblk0p5 && sync
+
+================================================================================
+
+326 file ramdisk.img
+
+327 cp ramdisk.img ramdisk.gz
+328 gunzip ramdisk.gz
+
+329 ls -l
+330 man cpio
+
+333 cpio -idmv ramdisk
+334 cat ramdisk | cpio -idmv
+
+================================================================================
+
+Android 挂载data分区
+
+/sbin/e2fsck -y /dev/block/mmcblk0p4
+/sbin/resize2fs /dev/block/mmcblk0p4
+/sbin/e2fsck -y /dev/block/mmcblk0p4
+
+mount -t ext4 /dev/block/mmcblk0p4 /data
+
+挂载U盘
+mount -t vfat /dev/block/sda1 /mnt/udisk/
+mount -t vfat /dev/block/sda1 /mnt
+
+================================================================================
+
+on fs
+exec /sbin/e2fsck -y -f /dev/block/mmcblk0p4
+exec /sbin/tune2fs -T now /dev/block/mmcblk0p4
+exec /sbin/resize2fs /dev/block/mmcblk0p4
+exec /sbin/e2fsck -y -f /dev/block/mmcblk0p4
+mount_all /fstab.emmc
+
+================================================================================
+
+Uboot中打印kernel Log
+set bootargs_neu 'setenv bootargs ${bootargs} androidboot.console=ttymxc3 androidboot.hardware=neusoft androidboot.fstab=emmc loglevel=7'
+savenv
+
+================================================================================
+
+ifneq (,$(filter eng,$(TARGET_BUILD_VARIANT)))
+PRODUCT_COPY_FILES += \
+tools/external/debug/sh/reset_otg.sh:system/bin/reset_otg.sh
+endif
+
+================================================================================
+
+df | busybox grep /data | busybox awk '{ print $2 }'
+
+================================================================================
+
+替换APK
+mount -o rw,remount /system
+cd system/app
+rm -rf KC2_EngineerMode.*
+cp 。。/system/app
+sync
+reboot
+
+================================================================================
+
+[NACA-ID:none][kernel][use printk_ratelimited(NOT printk) for binder log][1/1][zhangjh 20170727]
+
+
+[NACA-ID:none][userdataimage][add userdataimage resize function ][1/1][qinxiaobin]
+[NACA-ID:none][userdataimage][ userdataimage should not be compiled when build variable user ][1/1][qinxiaobin]
+
+================================================================================
+
+Android静态编译可执行程序：
+其中核心的就两句：
+
+LOCAL_FORCE_STATIC_EXECUTABLE := true 表明该模块需要静态链接 
+LOCAL_STATIC_LIBRARIES := 给出该模块需要链接的静态库列表。
+
+\#该模块需要链接的静态库列表，这里千万别忘记需要静态链接libc
+
+
+================================================================================
+
+idme recoverymode update
+
+================================================================================
+
+#!/bin/sh
+(
+cat <<EOF
+start()
+{
+echo "start"
+}
+EOF
+) >/tmp/b
+
+================================================================================
+
+busybox mke2fs -t ext4
+var=`idme print recoverymode`
+
+================================================================================
+
+echo T > /dev/gpio_soc_stbyen
+echo L > /dev/gpio_soc_stbyen
+
+echo H > /dev/gpio_soc_stbyen
+
+================================================================================
+
+编译：
+1.修改kernel配置
+#cp arch/arm/configs/cv_low_defconfig .config
+#make ARCH=arm menuconfig
+#cp .config arch/arm/configs/cv_low_defconfig
+
+2.单独编译kernel
+#make bootimage -j8
+
+3.编译时显示详细命令
+make -j8 SHOWCOMMAND=TRUE 2>&1 | tee build.log
+
+================================================================================
+
+dd if=/dev/block/mmcblk0 of=/data/first_8M.bin bs=1048576 count=8
+
+================================================================================
+
+system.img
+$cd <YOUR_PATH>/images
+/* creating 250MB, it can be configure as per need */
+$dd if=/dev/zero of=./system.img bs=1M count=250
+$mkfs.ext4 system.img
+$mkdir mnt-point
+$sudo mount -t ext4 -o loop system.img mnt-point/
+$cp -rfp <ANDROID_SOURCE>/out/target/product/omap3evm/system/* mnt-point/
+$sudo umount mnt-point
+
+
+userdata.img
+$cd <YOUR_PATH>/images
+/* creating 30MB, it can be configure as per need */
+$dd if=/dev/zero of=./userdata.img bs=1M count=10
+$mkfs.ext4 userdata.img
+$sudo mount -t ext4 -o loop userdata.img mnt-point/
+$cp -rfp <ANDROID_SOURCE>/out/target/product/omap3evm/data/* mnt-point/
+$cp -rfp <ANDROID_SOURCE>/out/target/product/omap3evm/root/data/* mnt-point/
+$sudo umount mnt-point
+
+
+cache.img
+$cd <YOUR_PATH>/images
+/* creating 30MB, it can be configure as per need */
+$dd if=/dev/zero of=./cache.img bs=1M count=30
+$mkfs.ext4 cache.img
+
+================================================================================
+
+ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
+ADDITIONAL_DEFAULT_PROPERTIES += service.adb.root=1
+ADDITIONAL_DEFAULT_PROPERTIES += ro.debuggable=1
+
+================================================================================
+
+自动化测试服务器
+ssh geely@10.1.48.202
+geely
+
+================================================================================
+
+原属性：
+[sys.usb.config]: [accessory,ncm]
+
+setprop sys.usb.config accessory,ncm,adb
+setprop sys.usb.config accessory,adb
+setprop sys.usb.config adb
+getprop
+
+启动 adb server ：
+adb start-server
+
+停止 adb server ：
+adb kill-server
+
+
+eng版本的default.prop
+#
+# ADDITIONAL_DEFAULT_PROPERTIES
+#
+ro.secure=0
+ro.allow.mock.location=1
+ro.debuggable=1
+persist.sys.usb.config=adb
+默认user版本default.prop
+
+#
+# ADDITIONAL_DEFAULT_PROPERTIES
+#
+ro.secure=1
+ro.allow.mock.location=1
+ro.debuggable=0
+persist.sys.usb.config=none
+
+================================================================================
+
+ADB连接
+
+adb无法找到设备的解决方法：
+setprop sys.usb.config accessory,ncm,adb
+busybox ifconfig wlan0 192.168.1.100
+setprop service.adb.tcp.port 5555
+stop adbd
+start adbd
+
+user版本
+setprop persist.sys.usb.config accessory,ncm,adb
+
+adb "no permissions"解决方法：
+#sudo vim /etc/udev/rules.d/70-android.rules
+SUBSYSTEM=="usb",ATTRS{idVendor}=="18d1",ATTRS{idProduct}=="9025",MODE="0666"
+#sudo chmod a+rx /etc/udev/rules.d/70-android.rules
+#sudo service udev restart
+#adb kill-server
+#adb start-server
+重新连接usb
+
+================================================================================
+
+sudo find sys -type f -print0 | sudo xargs -0 md5sum > system.md5
+sed -i 's/\/mnt\//data\/media\/0\//g'
+
+
+sudo md5sum -c system.md5
+
+================================================================================
+
+for f in `busyfox find path -type f`
+do 
+busybox md5sum $f
+done
+
+================================================================================
+
+安装NFS
+
+sudo apt-get install nfs-kernel-server
+
+1）打开/etc/exports文件，
+在末尾加入/home/lei/nfsFile *(rw,sync,no_root_squash)
+其中：
+/home/lei/nfsFile表示要共享的目录
+*表示所有的网段
+()里面表示可读写，资料同步写入内部磁盘，nfs客户端共享目录使用者权限
+注意啊，这里*和()之间没有空格啊，我为了这个问题困扰了很长时间。
+
+2）重启服务
+sudo /etc/init.d/portmap restart
+sudo /etc/init.d/nfs-kernel-server restart
+showmount -e
+
+3）在开发板上
+sudo mount -o nolock -t nfs 192.168.1.173:/home/lei/nfsFile /mnt
+其中：
+192.168.1.173是主机的IP地址
+/home/lei/nfsFile是主机上的共享目录
+
+4）卸载
+sudo umount /mnt
+
+Tips:
+Virtual boxs上网络连接方式选择桥接Bridged Adapter
+设定一个有线的IP地址与windows正在使用的IP地址不一样
+关闭ubuntu防火墙，sudo ufw disable
+
+================================================================================
+
+1） 下载并安装程序
+通过软件管理可以安装相应的程序tftp/tftpd，tftp是客户端程序，tftpd是服务器程序。在ubuntu系统的终端里输入下面的命令：
+
+sudo apt-get install tftp tftpd
+通过上面的命令，就可以安装相应的软件。
+
+2） 建立tftp服务器目录
+建立一个tftp客户端访问服务器的目录，如下：
+先进入到ubuntu系统的根目录，然后再建立一个目录，并修改目录属性；
+
+cd /
+sudo mkdir tftpboot
+sudo chmod 777 tftpboot
+
+接着修改tftp服务器配置的目录：
+sudo gedit /etc/inetd.conf
+tftp dgram udp wait nobody /usr/sbin/tcpd /usr/sbin/in.tftpd /tftpboot
+
+3） 重新启动服务
+sudo /etc/init.d/openbsd-inetd restart
+sudo in.tftpd –l /tftpboot
+
+4） 测试tftp服务器
+在/tftpboot目录下面建立一个文件：
+cd /tftpboot
+touch testfile
+
+在进入另外一个目录里面：
+tftp 127.0.0.1
+tftp>get testfile
+
+如果在这个目录下面看到testfile文件，就说明安装服务器，否则就是安装失败了。
+
+在开发板里设置uboot的tftp下载参数，先来设置开发板上的IP地址：
+setenv ipaddr 192.168.1.20
+
+这里设置IP地址为192.168.1.20。
+
+设置tftp服务器的IP地址：
+
+setenv serverip 192.168.1.103
+
+这里的IP地址192.168.1.103是电脑ubuntu的IP地址，也就是tftp服务所在的IP地址。
+
+在开发板里运行uboot之后，就可以输入下面的命令来测试是否可以从tftp服务器里加载linux内核文件zImage，当然是需要把这个文件放到/tftpboot目录下面。如下命令：
+
+tftp c0008000 zImage
+
+这里c0008000是下载开发板里内存起始地址，zImage是需要下载的文件名称。
+
+
+================================================================================
+日本代理：
+
+代理地址  172.30.50.10  端口8080
+
+export http_proxy="http://172.30.50.10:8080"
+export https_proxy="http://172.30.50.10:8080"
+
+
+================================================================================
+
+
+bootdelay=0
+baudrate=115200
+ethaddr=08:00:3e:26:0a:03
+ipaddr=10.1.48.202
+serverip=10.1.49.151
+gatewayip=10.1.48.1
+netmask=255.255.255.0
+loadaddr=0x10800000
+rd_loadaddr=0x11000000
+nfsroot=/home/qinxb/tftpboot/rootfs
+bootargs_base=setenv bootargs console=ttymxc3,115200 init=/init enable_wait_mode=off
+bootargs_video=setenv bootargs ${bootargs} fb0base=0x27b00000 video=mxcfb0:dev=ldb,LDB-KC2_HIGH,if=RGB24,bpp=32 video=mxcfb1:off video=mxcfb2:off ldb=spl0 fbmem=64M vmalloc=400M galcore.powerManagement=0
+bootargs_neu=setenv bootargs ${bootargs} androidboot.console=ttymxc3 androidboot.hardware=neusoft androidboot.fstab=emmc loglevel=4
+bootargs_nfs=setenv bootargs ${bootargs} root=/dev/nfs nfsrootdebug nosmp nfsroot=${serverip}:${nfsroot},v3,tcp ip=${ipaddr}:${serverip}:${gatewayip}::${netmask} androidboot.console=ttymxc3 androidboot.hardware=neusoft androidboot.fstab=neusoft fec_mac=${ethaddr} loglevel=7
+bootcmd_emmc=run bootargs_base bootargs_video bootargs_neu;booti mmc3
+bootcmd_nfs=tftpboot uImage;run bootargs_base bootargs_video bootargs_nfs;bootm
+bootcmd_android_recovery=run bootargs_base bootargs_video bootargs_neu;booti mmc3 recovery
+ethact=FEC0
+bootcmd=run bootcmd_nfs
+stdin=serial
+stdout=serial
+stderr=serial
+
+Environment size: 1231/8188 bytes
+
+================================================================================
+
+1、常用操作模式
+
+（1）备份：cpio -ocvB > [ file | device ]
+（2）还原：cpio -ivcdu > [ file | device ]
+（3）查看：cpio -ivct > [ file | device ]
+
+2、相关例子
+
+1）cpio-out模式
+
+（1）找出当前目录下的所有文件，然后将它们打包进一个cpio压缩包文件
+find . -depth | cpio -ocvB > backup.cpio 或 find . -depth -print | cpio -ocvB > backup.cpio
+
+================================================================================
+
+dd分割和合并文件
+
+/tmp # dd if=a.bin of=c.bin bs=128k skip=18 //一个块为128K，跳过前18块。
+/tmp # dd if=a.bin of=b.bin bs=128k count=18 //bs=128k,表示一个块128k, 从文件头开始，读取18块。
+/tmp # (dd if=b.bin ;dd if=c.bin) > all.bin // 使用这种方式可以把两个文件合并成一个文件 。
+
+================================================================================
+
+# dd if=uramdisk.img of=ramdisk.img.gz skip=64 bs=1
+# gunzip ramdisk.img.gz
+# mkdir ramdisk; cd ramdisk
+# cpio -i < ../ramdisk.img
+<make any changes needed>
+
+If you need to repack it again:
+
+# find . | cpio --create --format='newc' | gzip > ../ramdisk.img
+# mkimage -A arm -O linux -T ramdisk -C none -a LOADADDRESS -n "Label you want" -d ./ramdisk.img ./uramdisk.img
+
+================================================================================
+
+se "bootm" commnad to boot the kernel. The first argument is the address where the kernel uImage is stored. The second argument is the initramfs u-image. This second argument can be omitted if initramfs is not used and in this case, kernel will expect a correct "root=" option in the kernel command line.
+
+
+================================================================================
+
+qinxb@fe6version-server:~/work/fwsource/out/target/product/cv_fsl_imx6dl_qj_2wk$ mkimage -l uImage 
+Image Name: Linux-3.0.35+
+Created: Thu Aug 31 15:23:31 2017
+Image Type: ARM Linux Kernel Image (uncompressed)
+Data Size: 3833212 Bytes = 3743.37 kB = 3.66 MB
+Load Address: 10008000
+Entry Point: 10008000
+
+
+================================================================================
+
+ramdisk.img:
+
+BUILT_RAMDISK_TARGET = $(PRODUCT_OUT/ramdisk.img 这是我们的目标
+INSTALLED_RAMDISK_TARGET = BUILT_RAMDISK_TARGET 目标伪装了一下。
+MKBOOTFS = mkbootfs 就是位于out/host/linux-x86/bin目录下的mkbootfs,这东西自然也有后话。
+INTERNAL_RAMDISK_FILES = 所有TARGET_ROOT_OUT中的文件
+由此可以看出root目录先被打包生成了ramdisk.img，然后才合并进boot.img的。
+
+生成工具：
+mkbootfs
+
+uImage:
+
+boot.img
+
+INSTALLED_BOOTIMAGE_TARGET := $(PRODUCT_OUT)/boot.img
+$(INTALLED_BOOTIMAGE_TARGET) : $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FILE
+$(hide) $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) --output $@
+到此，我们可以知道 INTERNAL_BOOTIMAGE_ARGS的内容是：
+
+1 --kernel out/target/product/tcc8800/kernel 
+2 --ramdisk out/target/product/tcc8800/ramdisk.img
+3 --cmdline console=ttyTCC,115200n8
+4 --base 0x40000000 --pagesize 8192
+
+生成工具：
+mkbootimg
+
+================================================================================
+
+
+================================================================================
+cat<<EOF
+_______________________________________________________________
+User:$USER Host:$THIS_HOST DATE:$MYDATE
+_______________________________________________________________
+1:List files in current dir
+2:Use the vi editor
+3:See who is on the system
+H:Help sreen
+Q:Exit Menu
+_______________________________________________________________
+EOF
+
+================================================================================
+
+[评审问题]
+无
+[评审结果]
+OK
+[评审缺陷数]
+0
+
+
+----------------------------------------------------
+[变更内容]
+新增HDMI功能
+
+[确认手顺]
+通过导航进行双屏显示
+----------------------------------------------------
+
+
+================================================================================
+
+Android运行时，卸载data分区的方法：
+
+#stop
+#fusermountmenu -uz /data
+
+
+================================================================================
+
+Geely kernel 代码
+--------------------------
+OTG 2549:
+代码：
+
+board-mx6q_sabreauto.c
+
+// GPIO
+otg_peripherial.c
+geely_gpios.h
+
+// 仪表驱动
+usb84602.c
+
+// TPS2549控制驱动
+tps2549.c
+
+// Host Hub
+usb82512.c
+
+// Touch
+mfd_ts.c
+
+// TBOX
+cdc_ether.c
+
+设备节点：
+/sys/class/otg_peripheral
+
+--------------------------
+GPIO:
+gpio_preserve.c
+cgpio.c
+
+--------------------------
+TOUCH:
+mfd_ts.c
+ds90927.c
+
+--------------------------
+HUB:
+hub.c
+
+
+// Carplay
+fsl_otg.c
+
+
+drivers/usb/gadget/android.c 
+drivers/usb/gadget/f_accessory.c
+drivers/usb/gadget/f_iap.c 
+drivers/usb/gadget/f_ncm.c 
+drivers/usb/gadget/f_uac2.c
+
+================================================================================
+
+先从V4L驱动入手，网上资料很多，
+
+V4L主设备驱动关键代码：kernel_imx/drivers/media/video/mxc/capture/mxc_v4l2_capture.c
+V4L从设备驱动关键代码：kernel_imx/drivers/media/video/mxc/capture/ub940_mipi.c
+
+可以重点看一下V4L主从设备匹配过程，还有用户空间访问视频设备的流程。（i2c设备、驱动、总线 是基础）
+
+//////////////////////////////////////////////////////////////////////////////////////////
+###################### board-devices-imx6q.h.c ######################
+
+#define imx6q_add_v4l2_output(id) \
+platform_device_register_resndata(NULL, "mxc_v4l2_output",\
+id, NULL, 0, NULL, 0);
+
+#define imx6q_add_v4l2_capture(id, pdata) \
+platform_device_register_resndata(NULL, "mxc_v4l2_capture",\
+id, NULL, 0, pdata, sizeof(*pdata));
+
+////////////////////////////////////////////////////////////////////////////////////////// 
+###################### board-mx6q_sabreauto.c ######################
+
+imx6q_add_v4l2_output(0);
+imx6q_add_v4l2_capture(0, &capture_data[0]);
+#if defined (__CV__) || defined (__FE6__) || defined (__SX11__) || defined(__FE5HA__)
+imx6q_add_v4l2_capture(1, &capture_data[1]);
+#else
+if(cpu_is_mx6q()) /* Only imx6 Dual & Qual has 2 VPUs */
+imx6q_add_v4l2_capture(1, &capture_data[1]);
+#endif
+
+//////////////////////////////////////////////////////////////////////////////////////////
+###################### board-mx6q_sabreauto.c ######################
+
+ 
+
+
+V4L2的视频输入，输出是什么？
+
+
+================================================================================
+
+运行时设置kernel log级别：
+echo 0 > /proc/sys/kernel/printk
+echo 7 > /proc/sys/kernel/printk
+
+监听uevent事件：
+uevent_listener & //查看touch事件
+
+================================================================================
+
+
+/dev/gpio_adet_out
+/dev/gpio_bdet_out
+/dev/gpio_bvc_apa_notify
+/dev/gpio_dtv_status
+/dev/gpio_emmc_reset
+/dev/gpio_enginner_mode
+/dev/gpio_epmcu_reset
+/dev/gpio_ipod_reset
+/dev/gpio_lcd_backlight
+/dev/gpio_mic_ad_reset
+/dev/gpio_reverse_status
+/dev/gpio_rpc_notify
+/dev/gpio_rvc_avm_notify
+/dev/gpio_soc_stbyen
+/dev/gpio_tp_reset
+
+================================================================================
+
+BootChar使用方法：
+
+http://blog.csdn.net/andyhuabing/article/details/23669007
+
+
+1. 重新编译system/core/init模块
+$cd system/core/init
+$mm INIT_BOOTCHART=true -B
+2. 重新编译bootimage，并烧写
+3. 创建bootchart-start文件
+$cd /data 
+$echo 60 > /data/bootchart-start
+4. 重启车机
+5. 获取bootcart数据，并打包
+$cp /data/bootcart /udisk/sigle
+$tar -czf bootchart.tgz header proc_stat.log proc_ps.log proc_diskstats.log kernel_pacct
+6. PC安装bootchart工具
+$sudo apt-get install bootchart
+7. 执行下面的命令生成分析结果图表，缺省生成png格式的图像文件bootchart.png
+$bootchart bootchart.tgz
+
+================================================================================
+
+/proc/stat文件
+
+该文件包含了所有CPU活动的信息，该文件中的所有值都是从系统启动开始累计到当前时刻。不同内核版本中该文件的格式可能不大一致，以下通过实例来说明数据该文件中各字段的含义。
+实例数据：2.6.24-24版本上的
+
+fjzag@fjzag-desktop:~$ cat /proc/stat
+cpu 38082 627 27594 893908 12256 581 895 0 0
+cpu0 22880 472 16855 430287 10617 576 661 0 0
+cpu1 15202 154 10739 463620 1639 4 234 0 0
+intr 120053 222 2686 0 1 1 0 5 0 3 0 0 0 47302 0 0 34194 29775 0 5019 845 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ctxt 1434984
+btime 1252028243
+processes 8113
+procs_running 1
+procs_blocked 0
+
+第一行的数值表示的是CPU总的使用情况，所以我们只要用第一行的数字计算就可以了。下表解析第一行各数值的含义：
+参数 解析（单位：jiffies）
+(jiffies是内核中的一个全局变量，用来记录自系统启动一来产生的节拍数，在linux中，一个节拍大致可理解为操作系统进程调度的最小时间片，不同linux内核可能值有不同，通常在1ms到10ms之间)
+user (38082) 从系统启动开始累计到当前时刻，处于用户态的运行时间，不包含 nice值为负进程。
+nice (627) 从系统启动开始累计到当前时刻，nice值为负的进程所占用的CPU时间
+system (27594) 从系统启动开始累计到当前时刻，处于核心态的运行时间
+idle (893908) 从系统启动开始累计到当前时刻，除IO等待时间以外的其它等待时间iowait (12256) 从系统启动开始累计到当前时刻，IO等待时间(since 2.5.41)
+irq (581) 从系统启动开始累计到当前时刻，硬中断时间(since 2.6.0-test4)
+softirq (895) 从系统启动开始累计到当前时刻，软中断时间(since 2.6.0-test4)
+stealstolen(0) which is the time spent in other operating systems when running in a virtualized environment(since 2.6.11)
+guest(0) which is the time spent running a virtual CPU for guest operating systems under the control of the Linux kernel(since 2.6.24)
+
+结论2：总的cpu时间totalCpuTime = user + nice + system + idle + iowait + irq + softirq + stealstolen + guest
+
+================================================================================
+
+cat /proc/diskstats
+
+
+查看IO情况
+iostat -d -k 2
+
+ionice - set or get process I/O scheduling class and priority
+IO优先级 继承与进程的nice值： io_priority = (cpu_nice + 20) / 5
+
+ 
+
+vmstat：比top更详细的系统性能操作监控，其中有IO模块监控，能实时看到IO操作量
+130|root@CVQJ:/data # vmstat
+procs memory system cpu
+r b free mapped anon slab in cs flt us ni sy id wa ir
+0 0 825396 94092 241104 18544 847 1325 0 6 0 16 99 0 0
+0 0 825176 94096 241132 18544 882 1564 0 5 0 11 99 0 0
+0 0 825060 94000 241060 18544 858 1625 0 3 0 9 99 0 0
+0 0 824944 94096 241164 18544 807 1517 0 5 0 12 99 0 0
+0 0 825024 94096 241032 18548 841 1493 0 4 0 5 99 0 0
+0 0 824944 94096 241360 18544 866 1418 0 3 0 5 99 0 0
+0 0 825512 94096 240644 18544 1013 1703 0 7 0 11 99 0 0
+0 0 825644 94280 240648 18544 918 1569 0 1 0 3 99 0 0
+
+adb shell vmstat 2
+http://www.cnblogs.com/ggjucheng/archive/2012/01/05/2312625.html
+bi 每秒从块设备接收到的块数，即读块设备。这里的块设备是指系统上所有的磁盘和其他块设备，默认块大小是1024byte，我本机上没什么IO操作，所以一直是0，但是我曾在处理拷贝大量数据(2-3T)的机器上看过可以达到140000/s，磁盘写入速度差不多140M每秒
+
+bo 每秒发送到块设备的块数，即写块设备。例如我们写文件，bo就要大于0。bi和bo一般都要接近0，不然就是IO过于频繁，需要调整。
+
+in 每秒CPU的中断次数，包括时间中断
+
+cs 每秒上下文切换次数，例如我们调用系统函数，就要进行上下文切换，线程的切换，也要进程上下文切换，这个值要越小越好，太大了，要考虑调低线程或者进程的数目,例如在apache和nginx这种web服务器中，我们一般做性能测试时会进行几千并发甚至几万并发的测试，选择web服务器的进程可以由进程或者线程的峰值一直下调，压测，直到cs到一个比较小的值，这个进程和线程数就是比较合适的值了。系统调用也是，每次调用系统函数，我们的代码就会进入内核空间，导致上下文切换，这个是很耗资源，也要尽量避免频繁调用系统函数。上下文切换次数过多表示你的CPU大部分浪费在上下文切换，导致CPU干正经事的时间少了，CPU没有充分利用，是不可取的。
+
+
+================================================================================
+
+查看那些线程在操作IO：
+
+# echo 1 > /proc/sys/vm/block_dump
+# cat /proc/kmsg
+
+<7>[ 1816.056256] flush-179:0(2871): WRITE block 17045640 on mmcblk0p4 (8 sectors)
+<7>[ 1816.056554] flush-179:0(2871): WRITE block 300528 on mmcblk0p4 (8 sectors)
+<7>[ 1816.056648] flush-179:0(2871): WRITE block 300536 on mmcblk0p4 (8 sectors)
+<7>[ 1817.126371] flush-179:0(2871): WRITE block 290984 on mmcblk0p4 (8 sectors)
+<7>[ 1817.126608] flush-179:0(2871): WRITE block 290992 on mmcblk0p4 (8 sectors)
+<7>[ 1817.126800] flush-179:0(2871): WRITE block 8651400 on mmcblk0p4 (8 sectors)
+<7>[ 1817.127069] flush-179:0(2871): WRITE block 8651640 on mmcblk0p4 (8 sectors)
+<7>[ 1817.966376] jbd2/mmcblk0p4-(2326): WRITE block 25453960 on mmcblk0p4 (8 sectors)
+<7>[ 1817.966532] jbd2/mmcblk0p4-(2326): WRITE block 25453968 on mmcblk0p4 (8 sectors)
+<7>[ 1817.966666] jbd2/mmcblk0p4-(2326): WRITE block 25453976 on mmcblk0p4 (8 sectors)
+<7>[ 1817.966741] jbd2/mmcblk0p4-(2326): WRITE block 25453984 on mmcblk0p4 (8 sectors)
+<7>[ 1817.966871] jbd2/mmcblk0p4-(2326): WRITE block 25453992 on mmcblk0p4 (8 sectors)
+<7>[ 1817.967003] jbd2/mmcblk0p4-(2326): WRITE block 25454000 on mmcblk0p4 (8 sectors)
+
+================================================================================
+
+
+================================================================================
+
+ 
+
+================================================================================
+
+make_ext4fs -S out/target/product/cv_fsl_imx6dl_qj_2wk/root/file_contexts -l 943718400 -a system out/target/product/cv_fsl_imx6dl_qj_2wk/system.img out/target/product/cv_fsl_imx6dl_qj_2wk/system
+
+================================================================================
+USB HUB:
+
+usb_init //usb.c
+usb_hub_init //hub.c
+hub_thread //hub.c
+hub_events //hub.c
+hub_port_connect_change //hub.c
+
+
+struct usb_hub {
+struct device *intfdev; /* the "interface" device */
+struct usb_device *hdev;
+struct kref kref;
+struct urb *urb; /* for interrupt polling pipe */
+
+/* buffer for urb ... with extra space in case of babble */
+char (*buffer)[8];
+union {
+struct usb_hub_status hub;
+struct usb_port_status port;
+} *status; /* buffer for status reports */
+struct mutex status_mutex; /* for the status buffer */
+
+int error; /* last reported error */
+int nerrors; /* track consecutive errors */
+
+struct list_head event_list; /* hubs w/data or errs ready */
+unsigned long event_bits[1]; /* status change bitmask */
+unsigned long change_bits[1]; /* ports with logical connect
+status change */
+unsigned long busy_bits[1]; /* ports being reset or
+resumed */
+unsigned long removed_bits[1]; /* ports with a "removed"
+device present */
+#if USB_MAXCHILDREN > 31 /* 8*sizeof(unsigned long) - 1 */
+#error event_bits[] is too short!
+#endif
+
+struct usb_hub_descriptor *descriptor; /* class descriptor */
+struct usb_tt tt; /* Transaction Translator */
+
+unsigned mA_per_port; /* current for each child */
+
+unsigned limited_power:1;
+unsigned quiescing:1;
+unsigned disconnected:1;
+
+unsigned has_indicators:1;
+u8 indicator[USB_MAXCHILDREN];
+struct delayed_work leds;
+struct delayed_work init_work;
+void **port_owners;
+};
+
+================================================================================
+
+dump_stack();
+
+================================================================================
+
+init
+supported_functions
+ncm_function
+ncm_bind_config(c,ethaddr);
+
+init 
+android_bind
+android_init_functions
+
+static DEVICE_ATTR(functions, S_IRUGO | S_IWUSR, functions_show, functions_store);
+static DEVICE_ATTR(enable, S_IRUGO | S_IWUSR, enable_show, enable_store);
+static DEVICE_ATTR(state, S_IRUGO, state_show, NULL);
+
+
+static DEVICE_ATTR(enable, S_IRUGO | S_IWUSR, enable_show, enable_store);
+enable_store
+usb_add_config(cdev, &android_config_driver,android_bind_config);
+android_bind_config 
+android_bind_enabled_functions 
+bind_config
+
+functions_store
+android_enable_function(dev, name);
+
+
+================================================================================
+
+usb hub:
+usb_hub_init
+usb_register(&hub_driver)
+hub_probe
+hub_configure(hub, endpoint)
+usb_alloc_urb(0, GFP_KERNEL);
+usb_fill_int_urb(hub->urb, hdev, pipe, *hub->buffer, maxp, hub_irq,hub, endpoint->bInterval);
+hub_irq(struct urb *urb)
+kick_khubd(hub);
+
+kthread_run(hub_thread, NULL, "khubd");
+hub_events
+hub_port_status(hub, i,&portstatus, &portchange);
+hub_port_connect_change(hub, i,portstatus, portchange)
+hub_port_init(hub, udev, port1, i);
+
+
+================================================================================
+吉利服务器密码更改，如下请使用~
+
+大连侧访问人员使用如下账号：
+访问地址：\\10.10.92.139\吉利项目
+用户名:SY_Read
+密码：4rfv%TGB 
+
+================================================================================
+Kernel SVN：
+
+http://10.1.55.2/svn/IVI_Management/
+================================================================================
+
+脚本名称：
+b832bc61472727635baffcf25dd28e9f239273e2
+d4ad0e797c738a44a9dd1b9231d201e8374dfda2.sh
+
+================================================================================
+
+uevent机制：
+
+kernel空间：
+kernel通过kobject_uevent_env函数，将uevent通过netlink机制发送给用户空间。
+
+用户空间：
+/sbin/ueventd：负责分析ueventd.rc为设备文件分配权限
+open_uevent_socket();
+这是打开uevent的socket。
+这里的uevent是用到netlink中的内核事件向用户态通知（NETLINK_KOBJECT_UEVENT）功能，是内核和用户态进行双向数据传输的非常好的方式，
+除了eventd外，netd和vold也是使用uevent的。
+
+android 通过UEventObserver监听kernel发送的uvent事件；
+
+子类包括：
+HeadsetObserve.java，CameraObserve.java，UsbService.java，BatteryService.java
+
+================================================================================
+
+充电模式：
+cdp：默认的模式
+dcp：
+sdp：
+
+USB模式切换
+cat /proc/driver/usbroleswitch/0/mode
+mode ：0 host
+mode ：1 slave
+
+如果mode不为0，直接设置CDP。
+
+================================================================================
+
+屏幕问题：
+
+查看中断数是否增加：
+cat /proc/interrupts | grep kc-2-ts
+
+Android sendevent/getevent 用法：
+getevent&sendevent 是android系统下的一个工具，可以 模拟 多种按键和触屏操作，产生的是raw event，raw event经过event hub处理产生最终的gesture事件。
+这两个命令的源码在system/core/toolbox/下，sendevent.c getevent.c
+
+关于event设备的获取，在 /proc/bus/input/devices 下面：
+$ adb shell cat /proc/bus/input/devices
+
+一、getevent :
+获取getevent 的使用方法 : getevent -h
+
+查看touch事件：
+getevent -lr /dev/input/event1
+
+二、sendevent的使用：
+命令格式 : sendevent [device] [type] [code] [value]
+
+type, code, value的定义可参看kernel/include/linux/input.h
+
+type的定义：
+/* 
+* Event types 
+*/ 
+#define EV_SYN 0x00 
+#define EV_KEY 0x01 
+#define EV_REL 0x02 
+#define EV_ABS 0x03 
+#define EV_MSC 0x04 
+#define EV_SW 0x05 
+#define EV_LED 0x11 
+#define EV_SND 0x12 
+#define EV_REP 0x14 
+#define EV_FF 0x15 
+#define EV_PWR 0x16 
+#define EV_FF_STATUS 0x17 
+#define EV_MAX 0x1f 
+#define EV_CNT (EV_MAX+1)
+
+
+EV_ABS对应的code：
+/* 
+* Absolute axes 
+*/ 
+
+#define ABS_X 0x00 
+#define ABS_Y 0x01 
+#define ABS_Z 0x02 
+#define ABS_RX 0x03 
+#define ABS_RY 0x04 
+#define ABS_RZ 0x05 
+#define ABS_THROTTLE 0x06 
+#define ABS_RUDDER 0x07 
+#define ABS_WHEEL 0x08 
+#define ABS_GAS 0x09 
+#define ABS_BRAKE 0x0a 
+#define ABS_HAT0X 0x10 
+#define ABS_HAT0Y 0x11 
+#define ABS_HAT1X 0x12 
+#define ABS_HAT1Y 0x13 
+#define ABS_HAT2X 0x14 
+#define ABS_HAT2Y 0x15 
+#define ABS_HAT3X 0x16 
+#define ABS_HAT3Y 0x17 
+#define ABS_PRESSURE 0x18 
+#define ABS_DISTANCE 0x19 
+#define ABS_TILT_X 0x1a 
+#define ABS_TILT_Y 0x1b 
+#define ABS_TOOL_WIDTH 0x1c 
+#define ABS_VOLUME 0x20 
+#define ABS_MISC 0x28 
+
+#define ABS_MT_TOUCH_MAJOR 0x30 /* Major axis of touching ellipse */ 
+#define ABS_MT_TOUCH_MINOR 0x31 /* Minor axis (omit if circular) */ 
+#define ABS_MT_WIDTH_MAJOR 0x32 /* Major axis of approaching ellipse */ 
+#define ABS_MT_WIDTH_MINOR 0x33 /* Minor axis (omit if circular) */ 
+#define ABS_MT_ORIENTATION 0x34 /* Ellipse orientation */ 
+#define ABS_MT_POSITION_X 0x35 /* Center X ellipse position */ 
+#define ABS_MT_POSITION_Y 0x36 /* Center Y ellipse position */ 
+#define ABS_MT_TOOL_TYPE 0x37 /* Type of touching device */ 
+#define ABS_MT_BLOB_ID 0x38 /* Group a set of packets as a blob */ 
+#define ABS_MT_TRACKING_ID 0x39 /* Unique ID of initiated contact */ 
+#define ABS_MT_PRESSURE 0x3a /* Pressure on contact area */ 
+
+#define ABS_MAX 0x3f 
+#define ABS_CNT (ABS_MAX+1) 
+
+模拟点击：
+sendevent /dev/input/event1 0003 0000 0000015e // ABS x 坐标
+sendevent /dev/input/event1 0003 0001 000000df // ABS y 坐标
+sendevent /dev/input/event1 0001 014a 00000001 // BTN touch事件 值为1
+sendevent /dev/input/event1 0003 0018 00000000 // ABS pressure事件
+sendevent /dev/input/event1 0001 014a 00000000 // BTN touch事件 值为0
+sendevent /dev/input/event1 0000 0000 00000000 // sync事件
+
+947驱动：
+driver/input/touchscreen/ds90927.c
+
+
+================================================================================
+
+USB类型信息 DeviceClass
+
+#define USB_CLASS_PER_INTERFACE 0 /* for DeviceClass */
+#define USB_CLASS_AUDIO 1
+#define USB_CLASS_COMM 2
+#define USB_CLASS_HID 3
+#define USB_CLASS_PHYSICAL 5
+#define USB_CLASS_STILL_IMAGE 6
+#define USB_CLASS_PRINTER 7
+#define USB_CLASS_MASS_STORAGE 8
+#define USB_CLASS_HUB 9
+#define USB_CLASS_CDC_DATA 0x0a
+#define USB_CLASS_CSCID 0x0b /* chip+ smart card */
+#define USB_CLASS_CONTENT_SEC 0x0d /* content security */
+#define USB_CLASS_VIDEO 0x0e
+#define USB_CLASS_WIRELESS_CONTROLLER 0xe0
+#define USB_CLASS_MISC 0xef
+#define USB_CLASS_APP_SPEC 0xfe
+#define USB_CLASS_VENDOR_SPEC 0xff
+
+#define USB_SUBCLASS_VENDOR_SPEC 0xff
+
+
+================================================================================
+
+I2C驱动
+主设备号为：89
+设备节点路径：
+/dev/i2c-0
+/dev/i2c-1
+/dev/i2c-2
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+I2C 1
+
+Touch
+drivers/input/touchscreen/mfd_ts.c
+
+Mipi
+drivers/media/video/mxc/capture/ub940_mipi.c
+
+max96708
+drivers/media/video/mxc/capture/max96708.c
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+I2C 2
+
+Tw9990 (CV,SX,FE)
+drivers/media/video/mxc/capture/tw9990.c
+
+Tw8834 (KC,NL)
+drivers/media/video/mxc/capture/tw8834.c
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+I2C 3
+
+drivers/video/mxc/ds90ub927x26.c
+drivers/video/mxc/ds927_rw_api.c
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+// 封装i2c_msg调用i2c_transfer
+int i2c_master_send(const struct i2c_client *client, const char *buf, int count)
+int i2c_master_recv(const struct i2c_client *client, char *buf, int count)
+
+// 需自定义i2c_msg，并填充
+int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+
+
+================================================================================
+
+Carplay
+ncm通道
+f_ncm.c：将车机模拟成网卡，进行socket通信
+
+Carlife
+ea通道
+f_ea.c
+当车机切换到device模式，手机切换到host模式后
+苹果手机要枚举车机，车机需提供两个interface描述符，可通过ATS进行查看
+
+static struct usb_interface_descriptor ea_interface_desc = {
+.bLength = USB_DT_INTERFACE_SIZE, 
+.bDescriptorType = USB_DT_INTERFACE,
+.bInterfaceNumber = 1, //Must be different from the iAP2 interface number.
+.bAlternateSetting = 1,
+.bNumEndpoints = 2,
+.bInterfaceClass = 0xFF,
+.bInterfaceSubClass = 0xF0,
+.bInterfaceProtocol = 0x01,
+};
+
+static struct usb_interface_descriptor ea_nop_interface_desc = {
+.bLength = USB_DT_INTERFACE_SIZE,
+.bDescriptorType = USB_DT_INTERFACE,
+.bInterfaceNumber = 1, //Must be same as the default interface.
+.bAlternateSetting = 0,
+.bNumEndpoints = 0,
+.bInterfaceClass = 0xFF, //Vendor-specific interface
+.bInterfaceSubClass = 0xF0, //MFi Accessory
+.bInterfaceProtocol = 0x01, //External Accessory Native Transport
+};
+
+f_accessory.c
+认证驱动
+
+================================================================================
+
+init.rc执行过程
+imx6/etc/init.rc(root/init.rc) --> c3_alfus_fsl_imx6q/init.rc(root/init.neusoft.rc)
+
+
+================================================================================
+
+FUSE文件系统
+init.rc
+service sdcard /system/bin/sdcard -t4 /data/media /mnt/shell/emulated 1023 1023
+实现的功能为：
+1.挂载/dev/fuse到/mnt/shell/emulated
+2.对/mnt/shell/emulated的操作等同对/data/media的操作
+
+android sdcard相关的符号连接: 
+symlink /storage/emulated/legacy /sdcard
+symlink /storage/emulated/legacy /mnt/sdcard
+symlink /storage/emulated/legacy /storage/sdcard0
+symlink /mnt/shell/emulated/0 /storage/emulated/legacy
+
+
+================================================================================
+
+symlink /NAVI /sdcard/Navi
+chown sdcard_rw sdcard_rw /NAVI
+
+================================================================================
+
+CV SOC由单核切4核涉及到的修改：
+
+1. 创建Lunch选项
+http://10.1.55.7:8088/#/c/15729/
+http://10.1.55.7:8088/#/c/15892/
+http://10.1.55.7:8088/#/c/15893/
+
+2. 修改BoardConfig.mk，增加CV的kernel配置
+http://10.1.55.7:8088/#/c/15888/
+
+3. 创建kernel deconfig文件（kc2_high_defconfig）
+http://10.1.55.7:8088/#/c/16090/
+新增tw9990及82512配置
+
+4. 修改kernel及uboot端子定义
+http://10.1.55.7:8088/#/c/16091/ （kernel：940及XF6001SYE端子定义，XF6001SYE端子未定义会导致了重启。注意筛选CV特有和共用端子）
+http://10.1.55.7:8088/#/c/16091/ （uboot：940及XF6001SYE端子定义）
+
+5. 如果ddr变更，需修改ddr参数
+http://10.1.55.7:8088/#/c/16306/ （uboot）
+
+
+================================================================================
+
+测试kernel framebuffer是否有问题
+
+1.开机启动时，使用 stop android
+2. dd if=boot.bmp of=/dev/graphics/fb0
+
+也可以截取任意时刻的屏幕图片，然后将截图dd到/dev/graphics/fb0
+
+
+================================================================================
+
+如何基于现有的代码创建mirror
+
+源代码路径为：/home/qinxb/work/fwsource
+新mirror路径为：/home/qinxb/work/mirror
+
+1.cd /home/qinxb/work/mirror
+2.repo init -u /home/qinxb/work/fwsource/.repo/manifests -b default --mirror --reference=/home/qinxb/work/fwsource/.repo/project-objects/
+3.vim .repo/default.xml --> 修改fetch=".."为 fetch="./project-objects/"
+4.repo sync （i = 1;while ((i < 10));do repo sync;done）
+
+
+================================================================================
+
+SMB
+#sudo apt-get install samba samba-common
+#sudo smbpasswd -a qinxb
+
+#sudo vim /etc/samba/smb.conf
+		[qinxb]
+		comment = Home qinxb
+		path = /home2/qinxb
+		writable = yes
+		available = yes
+		browseable = yes
+		valid users = qinxb
+		public = yes
+		guest ok = yes
+
+#sudo service smbd restart
+
+================================================================================
+
+USBnet
+一 注册USB驱动
+1.初始化链表
+2.在usb上建立网卡设备
+3.获取端点描述符
+
+二 等待用户事件
+1.启动网络队列，调度软中断，建立urb等待数据接入
+2.send调用驱动数据发送接口，传下参skb，通过urb发送数据
+3.rev有数据时，通过urb接受数据，并通过软中断处理接收数据
+
+重要接口
+1.分配net_device结构体
+struct net_device *net = alloc_etherdev(sizeof(*dev));
+2.设置
+strcpy (net->name, "usb%d");
+memcpy (net->dev_addr, node_id, sizeof node_id);
+net->netdev_ops = &usbnet_netdev_ops;
+net->watchdog_timeo = TX_TIMEOUT_JIFFIES;
+net->ethtool_ops = &usbnet_ethtool_ops;
+
+netif_rx
+
+================================================================================
+
+
+
+
+
+================================================================================
+
+调试方法：
+
+i2c_rw
+
+root@SX11QJ:/ # i2c_rw
+i2c_rw <op=read|write> [bus-id=0xXX] <dev-id=0xXX> <addr=0xXX> [addr-auto-inc=0]
+[block-size=1] [repeat=1] [interval=0] [data-file=file-name] [data=0xXX]
+[and-mask=0xFF] [or-mask=0x00]
+
+bus-id=0x00 // i2c1
+bus-id=0x01 // i2c2
+bus-id=0x02 // i2c3
+dev-id=0x38 //设备地址 0x38
+addr=0x1c //设备寄存器地址
+
+# i2c_rw op=read bus-id=0x2 dev-id=0x38 addr=0x1c
+Reading from bus(0x02) dev(0x38) addr(0x1C), result=0x22
+
+# i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x1c data=0x22
+
+
+================================================================================
+
+
+================================================================================
+
+AVM的视频数据流程：
+AVM的视频输出格式为RGB888 -> 940转码为UYVY -> GPU转码为RGB565 -> FB进行显示
+
+================================================================================
+
+1. 首先检测下坏掉
+
+badblocks -s -v -o /root/bb.log /dev/sda　　将结果保存到bb.log
+
+[root@logging ~]# badblocks -s -v -o /root/badblocks.log /dev/sda
+Checking blocks 0 to 586061784
+Checking for bad blocks (read-only test): done 
+Pass completed, 173 bad blocks found.
+
+smartctl -a /dev/sda3 (快速检测硬盘坏道,看read，write 后面有没有errors)
+
+2. 逻辑坏道修复方法
+
+①、badblocks -s -w /dev/sda END START (END代表需要修复的扇区末端，START代表需要修复的扇区起始端)
+②、fsck -a /dev/sda
+
+修复后再用badblocks -s -v -o /root/bb.log /dev/sda监测看是否还有坏道存在，如果坏道还是存在的话说明坏道属于硬盘坏道。硬盘坏道要用隔离方法，首先记录监测出的硬盘坏道然后分区的时候把硬盘坏道所在的扇区分在一个分区（大小一般大于坏扇区大小），划分出的坏道分区不使用即可达到隔离的目的
+
+3. 0磁道坏道和硬盘坏道（准备换硬盘）
+
+0磁道坏道的修复方法是隔离0磁道，使用fdsk划分区的时候从1磁道开始划分区。
+
+如果是硬盘坏道的话，只能隔离不能修复
+
+
+================================================================================
+
+last_kmsg：
+
+SOC的软重启，包括FW，Kernel必然会重启两次；
+V850超过120s后，发现gpio_stanbyen拉低后，20s后就会重启SOC。
+kernel异常时，会产生lask_kmsg，但有last_kmsg并不一定是kernel异常。
+reboot也会产生last_kmsg，同样，FW重启也会产生last_kmsg
+只要是软重启定会产生last_kmsg
+SOC掉电也会生成last_kmsg
+
+
+================================================================================
+
+AVM RVC通知V850：
+
+#define RVC_AVM_NOTIFY IMX_GPIO_NR( 5, 7) /* RVC or AVM */
+#define NVC_BVC_APA_NOTIFY IMX_GPIO_NR( 5, 8) /* BVC/NVC or APA */
+
+================================================================================
+倒车程序：
+
+940 PDB
+
+CV
+#define DS90940_PDB IMX_GPIO_NR(4, 12)
+#define DS947_PDB IMX_GPIO_NR(7, 8)
+
+KC 3WK
+#define DS90947_PDB IMX_GPIO_NR(5, 23)
+#define DS90940_PDB IMX_GPIO_NR(5, 29)
+#define MAX96708_PDB IMX_GPIO_NR(5, 28)
+
+NL
+#define XF60001_RST_EN IMX_GPIO_NR(6, 31)
+#define DS90947_PDB IMX_GPIO_NR(7, 8)
+#define DS90940_PDB IMX_GPIO_NR(4, 14)
+
+使能CV PDB
+echo "write,4,12,0" > /dev/gpio_enginner_mode //拉低gpio（1,1）
+echo "write,4,12,1" > /dev/gpio_enginner_mode //拉高gpio（1,1）
+
+查看PDB的使能情况：
+#cat /proc/kmsg &
+#echo "read,4,12" > /dev/gpio_enginner_mode
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+940的通道切换：
+查看及切换Chanel
+
+static u8 ub940_switch_dvr_mode[] = {0x34, 0x19};
+static u8 ub940_switch_avm_mode[] = {0x34, 0x11};
+
+940 I2C：
+总线为 ：I2C3 
+地址为 ：0x38
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+查看Chanel：
+# i2c_rw op=read bus-id=0x2 dev-id=0x38 addr=0x34
+
+返回值：
+0x19 ：DVR
+0x11 ：AVM
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+切换Chanel：
+AVM MODE
+# i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x34 data=0x11
+或
+DVR MODE
+# i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x34 data=0x19
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+reset 940 MIPI：
+# i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x01 data=0x01
+
+查看lvds信号（Lock脚的状态）：
+# i2c_rw op=read bus-id=0x2 dev-id=0x38 addr=0x1C
+	data=0x01 表示有信号
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	
+940静态测试模式：
+i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x65 data=0x10
+i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x64 data=0x05
+
+940动态测试模式：
+i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x65 data=0x11
+i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x64 data=0x01
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+947静态测试模式：
+
+chmod 750 /sbin/i2c_rw
+i2c_rw op=write bus-id=0x00 dev-id=0x0c addr=0x65 data=0x10
+i2c_rw op=write bus-id=0x00 dev-id=0x0c addr=0x64 data=0x05
+
+947动态测试模式：
+i2c_rw op=write bus-id=0x00 dev-id=0x0c addr=0x65 data=0x11
+i2c_rw op=write bus-id=0x00 dev-id=0x0c addr=0x64 data=0x01
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+948静态测试模式：
+i2c_rw op=write bus-id=0x00 dev-id=0x2c addr=0x65 data=0x10
+i2c_rw op=write bus-id=0x00 dev-id=0x2c addr=0x64 data=0x05
+
+948动态测试模式：
+i2c_rw op=write bus-id=0x00 dev-id=0x2c addr=0x65 data=0x11
+i2c_rw op=write bus-id=0x00 dev-id=0x2c addr=0x64 data=0x01
+
+注：
+1.因948在947的后端，948的测试程序可覆盖947的测试程序结果；
+2.当无正常内容显示时，947的测试模式可正常显示的话，说明主机输出可能存在问题。
+  当947的测试模式也无法正常显示时，则说明问题发生在947的后端（屏幕侧）。
+3.948的测试模式正常显示，则说明948的后端无问题。
+  948的测试模式不能正常显示，则说明948后端存在问题。
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+调试工具：
+
+memtool使用：
+查看寄存器状态：
+
+通过memtool工具读取MIPI状态寄存器
+
+为寄存器赋值：
+memtool -32 0x20C9010=0x10060600
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+查看GPIO状态：
+
+读取gpio的值：
+# echo "read,1,1" > /dev/gpio_enginner_mode
+
+设置gpio的值：
+# echo "write,1,1,0" > /dev/gpio_enginner_mode //拉低gpio（1,1）
+# echo "write,1,1,1" > /dev/gpio_enginner_mode //拉高gpio（1,1）
+
+----------------------------
+
+背光控制（GPIO）：
+#define LCD_BACKLIGHT IMX_GPIO_NR(5, 5)
+
+查看背光状态：
+#echo "read,5,5" > /dev/gpio_enginner_mode
+
+设置背光状态：
+#echo "write,5,5,0" > /dev/gpio_enginner_mode   //关背光
+#echo "write,5,5,1" > /dev/gpio_enginner_mode   //开背光
+
+同上：
+# echo T > /dev/gpio_lcd_backlight               //关背光
+# echo L > /dev/gpio_lcd_backlight               //开背光
+
+----------------------------
+
+进入倒车的方法：
+# echo T > /dev/gpio_reverse_status
+# echo H > /dev/gpio_reverse_status
+# echo T > /dev/gpio_rvc_avm_notify
+# echo H > /dev/gpio_rvc_avm_notify
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+I2C通信：
+
+读寄存器：
+# i2c_rw op=read bus-id=0x00 dev-id=0x0c addr=0x42
+
+写寄存器：
+# i2c_rw op=write bus-id=0x00 dev-id=0x0c addr=0x42 data=0x01
+
+================================================================================
+
+调试_秦晓斌	10.1.49.151
+调试_秦晓斌	10.1.49.131
+调试_翟文博	10.1.49.157
+
+
+================================================================================
+
+测试倒车：
+setprop service.mxc_v4l2_tvin.reverse 1 
+mxc_v4l2_tvin -ot 0 -ol 0 -oh 576 -ow 720 -m 0 -vd
+
+setprop service.mxc_v4l2_tvin.reverse 1 
+mxc_v4l2_tvin -ot 0 -ol 0 -oh 576 -ow 720 -m 1 -vd
+mxc_v4l2_tvin -ot 0 -ol 0 -oh 576 -ow 720 -m 2 -vd
+
+i2c_rw op=write bus-id=0x1 dev-id=0x45 addr=0x08 data=0x10
+i2c_rw op=read bus-id=0x1 dev-id=0x45 addr=0x08
+
+
+i2c_rw op=write bus-id=0x1 dev-id=0x45 addr=0x0a data=0x10
+i2c_rw op=read bus-id=0x1 dev-id=0x45 addr=0x0a
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+RVC模块使用tw9990芯片 ：
+
+I2C地址为：0x45
+I2C Bus: 0x01 (Bus 2)
+
+9990 Reset:
+GPIO (3,27)
+
+echo "write,3,27,0" > /dev/gpio_enginner_mode //拉低gpio（1,1）
+echo "write,3,27,1" > /dev/gpio_enginner_mode //拉高gpio（1,1）
+
+
+通过I2C访问9990 0x1C寄存器值：
+返回值为：0x68表示9990已获取视频信号
+命令如下：
+#i2c_rw op=read bus-id=0x01 dev-id=0x45 addr=0x1C
+返回值为：0x68表示有信号
+
+查看tw9990的通道：
+RVC通道：
+#i2c_rw op=read bus-id=0x01 dev-id=0x45 addr=0x0x02
+返回值为：0x40
+
+NVC通道：
+#i2c_rw op=read bus-id=0x01 dev-id=0x45 addr=0x0x02
+返回值为：0x44
+
+================================================================================
+标清摄像头：
+tw9990
+	i2c地址:0x45
+	可切换通道：
+	RVC
+	BVC
+
+tw8834
+	i2c地址:0x45
+	可切换通道：
+	RVC及AVM
+
+高清摄像头编解码芯片：
+ub940
+	i2c地址：0x38
+
+max96708:
+	i2c地址：0x64
+
+================================================================================
+
+USB Hub:
+usb84602
+usb82512
+
+USB PROTECT:
+2549
+
+================================================================================
+显示芯片：
+ub947/ub948
+max9291/max9297
+
+
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+
+
+
+打开工程模式：
+am start com.neusoft.optimus.megatron/com.neusoft.shockwave.engineermode.view.MainActivity
+
+jh3280
+
+================================================================================
+
+设置CPU频率：
+
+echo 400000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+
+================================================================================
+
+================================================================================
+
+bootargs_video=setenv bootargs ${bootargs} fb0base=0x27b00000 video=mxcfb0:dev=ldb,LDB-KC2_HIGH,if=RGB24,bpp=32 video=mxcfb1:dev=hdmi,HDMI-KC2_HIGH,if=RGB24,bpp=32 video=mxcfb2:off ldb=spl0 fbmem=64M vmalloc=400M galcore.powerManagement=0
+
+仪表驱动参数：
+video=mxcfb1:dev=hdmi,HDMI-KC2_HIGH,if=RGB24,bpp=32
+
+================================================================================
+
+CAN Box:
+
+设防：
+EMS_EngineRPM -> EMS_EngStatus -> 3
+
+倒车：
+BCM_StatusUpdate -> BCM_ATWS_ST -> 2
+GW_PEPS_Information -> EPES_Powermode -> 2
+GW_PEPS_Information -> EPES_PowermodeValidity -> 2
+
+================================================================================
+
+Framework net流程
+
+frameworks/base/core/java/android/net/EthernetDataTracker.java
+
+ConnectivityService
+1. frameworks/base/services/java/com/android/server/ConnectivityService.java
+
+2. frameworks/base/core/res/res/values/config.xml
+<string-array translatable="false" name="networkAttributes">
+<item>"wifi,1,1,1,-1,true"</item>
+<item>"mobile,0,0,0,-1,true"</item>
+<item>"mobile_mms,2,0,2,60000,true"</item>
+<item>"mobile_supl,3,0,2,60000,true"</item>
+<item>"mobile_hipri,5,0,3,60000,true"</item>
+<item>"mobile_fota,10,0,2,60000,true"</item>
+<item>"mobile_ims,11,0,2,60000,true"</item>
+<item>"mobile_cbs,12,0,2,60000,true"</item>
+<item>"wifi_p2p,13,1,0,-1,true"</item>
+</string-array>
+
+<string translatable="false" name="config_ethernet_iface_regex">tbox\\d</string>
+
+3. 创建各个网络service trancker
+
+public NetworkStateTracker createTracker(int targetNetworkType, NetworkConfig config) {
+switch (config.radio) {
+case TYPE_WIFI:
+return new WifiStateTracker(targetNetworkType, config.name);
+case TYPE_MOBILE:
+return new MobileDataStateTracker(targetNetworkType, config.name);
+case TYPE_DUMMY:
+return new DummyDataStateTracker(targetNetworkType, config.name);
+case TYPE_BLUETOOTH:
+return BluetoothTetheringDataTracker.getInstance();
+case TYPE_WIMAX:
+return makeWimaxStateTracker(mContext, mTrackerHandler);
+case TYPE_ETHERNET:
+return EthernetDataTracker.getInstance();
+default:
+throw new IllegalArgumentException(
+"Trying to create a NetworkStateTracker for an unknown radio type: "
++ config.radio);
+}
+}
+4. core/java/android/net/EthernetDataTracker.java
+public static synchronized EthernetDataTracker getInstance() {
+if (sInstance == null) sInstance = new EthernetDataTracker();
+return sInstance;
+}
+
+
+public void interfaceLinkStateChanged(String iface, boolean up)
+mTracker.reconnect();
+runDhcp();
+
+5. public void startMonitoring(Context context, Handler target)
+
+
+6. /dev/socket/netd
+socket都会发送到该设备节点
+
+================================================================================
+
+getevent
+
+
+================================================================================
+驱动加载顺序：
+
+[MIPI] mipi_csi2_probe(453):Initialize the MIPI CSI2 device. Probe Start
+[V4L2] mxc_v4l2_probe(2972):Probe Start
+[UB940] ub940_probe(1055):ub940_probe
+
+================================================================================
+vim + ctag ：
+
+1.创建tag文件：
+ctags -R --c++-kinds=+px --fields=+iaS --extra=+q .
+
+2.创建vimrc文件：
+
+================================================================================
+各位，此邮件建议收藏
+
+https://pan.neusoft.com/
+网盘用户名为：li.mx
+网盘用户密码为：XXxx.0908
+
+以上
+
+================================================================================
+相关驱动文件：
+ipu_csi_enc.c
+mxc_v4l2_capture.c
+ub940_mipi.c
+tw9990.c
+
+ 
+
+ 
+
+mxc_v4l2_probe
+init_camera_struct
+cam->ipu = ipu_get_soc(pdata->ipu);
+init_MUTEX(&cam->param_lock);
+init_MUTEX(&cam->busy_lock);
+cam->video_dev = video_device_alloc();
+*(cam->video_dev) = mxc_v4l_template;
+video_set_drvdata(cam->video_dev, cam);
+dev_set_drvdata(&pdev->dev, (void *)cam);
+cam->video_dev->minor = -1;
+init_waitqueue_head(&cam->enc_queue);
+init_waitqueue_head(&cam->still_queue);
+
+ipu_csi_set_window_size(cam->ipu, cam->crop_current.width,
+cam->crop_current.height, cam->csi);
+ipu_csi_set_window_pos(cam->ipu, cam->crop_current.left,
+cam->crop_current.top, cam->csi);
+
+cam->ipu_id = pdata->ipu;
+cam->csi = pdata->csi;
+cam->mclk_source = pdata->mclk_source;
+cam->mclk_on[cam->mclk_source] = false;
+
+spin_lock_init(&cam->queue_int_lock);
+spin_lock_init(&cam->dqueue_int_lock);
+
+cam->self = kmalloc(sizeof(struct v4l2_int_device), GFP_KERNEL);
+cam->self->module = THIS_MODULE;
+sprintf(cam->self->name, "mxc_v4l2_cap%d", pdev->id);
+cam->self->type = v4l2_int_type_master;
+cam->self->u.master = &mxc_v4l2_master;
+v4l2_int_device_register(cam->self);
+list_add(&d->head, &int_list);
+v4l2_int_device_try_attach_all();
+s->u.slave->master = m;
+m->u.master->attach(s)
+mxc_v4l2_master_attach
+cam->sensor = slave;
+cam->all_sensors[cam->sensor_index] = slave;
+cam->sensor_index++;
+for (i = 0; i < cam->sensor_index; i++) {
+vidioc_int_dev_exit(cam->all_sensors[i]);
+-->>mipi_csi2_disable(mipi_csi2_info);
+vidioc_int_s_power(cam->all_sensors[i], 0);
+}
+cam_fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+vidioc_int_g_fmt_cap(cam->sensor, &cam_fmt);
+-->>cam_fmt->fmt.pix = sensor->pix;
+
+cam->device_type = cam_fmt.fmt.pix.priv;
+
+/* Set the input size to the ipu for this device */
+cam->crop_bounds.top = cam->crop_bounds.left = 0;
+cam->crop_bounds.width = cam_fmt.fmt.pix.width;
+cam->crop_bounds.height = cam_fmt.fmt.pix.height;
+
+/* This also is the max crop size for this device. */
+cam->crop_defrect.top = cam->crop_defrect.left = 0;
+cam->crop_defrect.width = cam_fmt.fmt.pix.width;
+cam->crop_defrect.height = cam_fmt.fmt.pix.height;
+
+/* At this point, this is also the current image size. */
+cam->crop_current.top = cam->crop_current.left = 0;
+cam->crop_current.width = cam_fmt.fmt.pix.width;
+cam->crop_current.height = cam_fmt.fmt.pix.height;
+video_register_device
+__video_register_device
+vdev->minor = -1;
+/* v4l2_fh support */
+spin_lock_init(&vdev->fh_lock);
+INIT_LIST_HEAD(&vdev->fh_list);
+
+name_base = "video";
+vdev->vfl_type = type; // video_device->vfl_type = VFL_TYPE_GRABBER
+
+// ??????
+vdev->vfl_type = type;
+vdev->cdev = NULL;
+if (vdev->v4l2_dev) {
+if (vdev->v4l2_dev->dev)
+vdev->parent = vdev->v4l2_dev->dev;
+if (vdev->ctrl_handler == NULL)
+vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
+/* If the prio state pointer is NULL, then use the v4l2_device
+prio state. */
+if (vdev->prio == NULL)
+vdev->prio = &vdev->v4l2_dev->prio;
+}
+// ???????
+
+vdev->minor = i + minor_offset;
+vdev->num = nr;
+devnode_set(vdev);
+
+dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
+
+video_device[vdev->minor] = vdev;
+
+
+mxc_v4l_open
+csi_enc_select // 选择CSI ENC为working path
+
+// 初始化三个队列
+INIT_LIST_HEAD(&cam->ready_q);
+INIT_LIST_HEAD(&cam->working_q);
+INIT_LIST_HEAD(&cam->done_q);
+
+vidioc_int_g_ifparm(cam->sensor, &ifparm); // 获取camera的v4l2_ifparm结构体，并赋值给ipu_csi_signal_cfg_t结构体（将摄像头的一些参数，赋值给csi的相关值）
+vidioc_int_g_fmt_cap(cam->sensor, &cam_fmt); // 获取camera的v4l2_format结构体数据，设置
+
+ipu_csi_set_window_size // 设置窗口大小
+ipu_csi_set_window_pos // 设置窗口位置
+ipu_csi_init_interface // 设置csi寄存器
+
+vidioc_int_dev_init(cam->sensor); 
+ioctl_dev_init (ub940) // 初始化设备，设置时钟，设置帧率，使能mipi csi
+ub940_init_mode // 初始化940
+
+ 
+
+
+APP调用过程：
+文件：TThreadTvin.cpp
+函数：void TThreadTvin::ThreadFunc(void)
+InitVideo(TVIN_SOURCE_REVERSE_ON)
+操作940或9990
+int TCapture::Initialize(void)
+QueryCapability();
+ShowChipIdent();
+SetInputSource(1);
+SetCropCapability();
+SetStreamParam();
+SetCapFormat();
+prepare_g2d();
+AllocateBuffer();
+SetupVideo();
+m_Ipu.SetupInput(0, 0, iWidth, iHeight, iFormat);
+m_Ipu.SetupOutput(0, 0, oWidth, oHeight, oFormat);
+m_Ipu.CheckTask();
+m_Capture.StreamOn();
+RequestBuffer();
+QueryBuffer();
+QueueBuffer();
+
+ioctl (m_FdCap, VIDIOC_STREAMON, &type) // 阻塞，真正进入stream on
+mxc_streamon // 调入内核
+
+
+每个mxc_v4l2_cap0设备，对应一个cam_data结构体，每个cam_data结构体本身为
+sprintf(cam->self->name, "mxc_v4l2_cap%d", pdev->id);
+cam->self->type = v4l2_int_type_master;
+cam->self->u.master = &mxc_v4l2_master;
+
+v4l2_int_device注册过程：
+调用v4l2_int_device_register，将所有的v4l2_int_device添加到int_list链表，然后调用v4l2_int_device_try_attach_all。
+在列表中找到所有的master，将所有的slave的master指定为cam_data->self。int_list链表中将存在两个master及两个slave，
+每个slave根据sci来匹配自己的master。
+
+
+问题：
+1. 为什么会调用两次probe，生成mxc_v4l2_cap0，mxc_v4l2_cap1，上述文件的意思是什么？
+2. cam->device_type的意义是？
+3. TI940支持数据格式转换（YUV/RGB），该功能可以实现IPU转码功能转移到GPU2D的方案，能有效降低IPU负荷，优化系统性能。
+如何实现的？
+4. 带宽如何计算？
+5. 测试模式如何使用？
+6. 数据转换能力，如何使用？
+// mxc_v4l2_capture.c
+mxc_v4l_open
+
+// ub940_mipi.c
+ioctl_dev_init
+ub940_init_mode
+mipi_csi2_set_datatype(mipi_csi2_info, MIPI_DT_YUV422);
+7. 如何使用memtool读取mipi时钟及数据寄存器？
+8. 如何确认摄像头的外同步及内同步模式？
+9. mipi-csi2及csi2ipu对应的实质硬件是？
+SOC内的一个模块
+
+CSI? LVDS：可靠传输 MIPI：芯片通用性 转换为SCI可识别信号 
+摄像头 ---------> 编码器 ----------> 解码器 ------------> MIPI-CSI2 ---------> SCI -----------> DI -----------> Display 
+| SOC模块 | | 属IPU |
+
+================================================================================
+Camera Hal:
+
+硬件对象：CameraModule.cpp
+
+typedef struct fsl_camera_device {
+camera2_device_t base;
+CameraHal *camHal;
+int cameraid;
+} fsl_camera_device_t;
+
+硬件接口：CameraModule.cpp
+
+typedef struct fsl_camera_device {
+camera2_device_t base;
+CameraHal *camHal;
+int cameraid;
+} fsl_camera_device_t;
+
+硬件对象实例：
+camera_module_t HAL_MODULE_INFO_SYM = {
+common: {
+tag: HARDWARE_MODULE_TAG,
+module_api_version: CAMERA_MODULE_API_VERSION_2_0,
+hal_api_version: HARDWARE_HAL_API_VERSION,
+id: CAMERA_HARDWARE_MODULE_ID,
+name: "Neusoft CameraHal Module",
+author: "Neusoft",
+methods: &camera_module_methods,
+dso: NULL, /* remove compilation warnings */
+reserved: { 0 }, /* remove compilation warnings */
+},
+get_number_of_cameras: camera_get_number_of_cameras,
+get_camera_info: camera_get_camera_info,
+set_callbacks: NULL,
+};
+
+CameraHal ID：
+#define CAMERA_HARDWARE_MODULE_ID "camera"
+
+上层Service：
+：av/services/camera/libcameraservice/CameraService.cpp
+
+CameraService::onFirstRef()
+hw_get_module(CAMERA_HARDWARE_MODULE_ID,(const hw_module_t **)&mModule)
+
+
+================================================================================
+查看android surfaceflinger层级关系，来确认那层不响应touch事件
+分析android系统图层信息
+
+#dumpsys SurfaceFlinger
+
+================================================================================
+硬件抽象层：
+camera的
+
+unix给我们提供的readelf命令去查看相应的符号信息
+
+================================================================================
+替换DVR APK：
+mount -o rw,remount /system
+rm -rf /system/app/KC2_DVR*
+sync
+reboot
+
+pm install *.apk
+
+
+重启后就可以直接pm install安装了
+
+================================================================================
+仪表工作流程：
+1. USB连接仪表和车机；
+2. 车机创建模拟网卡，分配IP与仪表进行socket连接；
+3. 高德申请虚拟framebuffer，前台6帧后台3帧，将数据（RGB888）存储到framebuffer中；
+4. screencap进程，读取framebuffer数据，使用IPU进行数据转换成YUV420 （RGB888 -> YUV420），然后调用VPU (YUV420)进行数据压缩转换成JPG格式；
+5. 将JPG格式的数据通过socket发送给仪表；
+
+screencap的工程路径为：
+external/neusoft/screencap_neu
+
+================================================================================
+axure rp 8.0
+
+Licensee: University of Science and Technology of China (CLASSROOM)
+Key: DTXRAnPn1P65Rt0xB4eTQ+4bF5IUF0gu0X9XBEUhM4QxY0DRFJxYEmgh4nyh7RtL
+
+================================================================================
+
+================================================================================
+单编译某个android模块：
+make mxc_v4l2_tvin -j8
+
+================================================================================
+
+tw9990初始化参数：
+{0xFF, 0x00},{0x00, 0x00},{0x01, 0x68},{0x02, 0xC0},{0x03, 0xA0},{0x04, 0x00},
+{0x05, 0x00},{0x06, 0x00},{0x07, 0x12},{0x08, 0x12},{0x09, 0x20},{0x0A, 0x10},
+{0x0B, 0xD0},{0x0C, 0xCC},{0x0D, 0x74},{0x0E, 0x11},{0x0F, 0x31},{0x10, 0x00},
+{0x11, 0x64},{0x12, 0x21},{0x13, 0x80},{0x14, 0x80},{0x15, 0x00},{0x16, 0x00},
+{0x17, 0x30},{0x18, 0x44},{0x19, 0x58},{0x1A, 0x0A},{0x1B, 0x00},{0x1C, 0x07},
+{0x1D, 0x7F},{0x1E, 0x08},{0x1F, 0x00},{0x20, 0xA0},{0x21, 0x42},{0x22, 0xF0},
+{0x23, 0xD8},{0x24, 0xBC},{0x25, 0xB8},{0x26, 0x44},{0x27, 0x2A},{0x28, 0x00},
+{0x29, 0x00},{0x2A, 0x78},{0x2B, 0x44},{0x2C, 0x40},{0x2D, 0x14},{0x2E, 0xA5},
+{0x2F, 0xE0},{0x30, 0x00},{0x31, 0x10},{0x32, 0xFF},{0x33, 0x05},{0x34, 0x1A},
+{0x35, 0xA0},{0x4C, 0x05},{0x4D, 0x40},{0x4E, 0x00},{0x4F, 0x00},{0x50, 0xA0},
+{0x51, 0x22},{0x52, 0x31},{0x53, 0x80},
+
+================================================================================
+
+flash u-boot.bin
+
+echo 0 > /sys/block/mmcblk0boot0/force_ro
+dd if=u-boot.bin of=/dev/block/mmcblk0boot0 bs=512 seek=2 skip=2
+echo 1 > /sys/block/mmcblk0boot0/force_ro
+
+================================================================================
+
+================================================================================
+
+针对吉利项目使用940芯片进行的AVM或DVR显示时，会出现花屏或滚屏的问题。
+TI工程师反馈，经过试验验证，确认940的花屏问题原因与940 MIPI部分电路时钟和数据的同步相关。
+并针对该问题，提出了下述两种软件workaround，但经验证，两种对策并不能有效解决花屏及滚屏问题，仍能高概率再现。
+
+东软进行了下述尝试，发现下述对策，对ub940问题有改善，具体如下：
+SoC实时监测mipi寄存器状态，当mipi信号异常时，对940进行复位操作（0x01寄存器）。
+同时，帧错误发生时，会对camera 的stream buffer进行一下清空。
+经连续22小时试验验证（每4s进行一下AVM，DVR切换），尚未发现花屏及滚屏现象。
+至此，证实该对策能有效的屏蔽940的花屏、滚屏现象，压力试验仍在进行中。
+
+基于上述对策，TI工程师进行了review，并且对软件workaround进行了优化和改进，
+建议将940的复位寄存器由0x01改为0x40，但经13小时的测试，仍出现了5次滚屏现象。
+
+
+================================================================================
+限定SOC主频
+arm_freq=1000
+set bootargs_neu 'setenv bootargs ${bootargs} androidboot.console=ttymxc3 androidboot.hardware=neusoft androidboot.fstab=emmc loglevel=1 arm_freq=1000'
+saveenv
+================================================================================
+C3_2.0
+
+Gerrit服务器还需要需要时间进行配置，大家可以先使用荣远的账号下载代码，先看着。
+方法：
+1.	登录http://10.1.74.60:8088/#/dashboard/self
+账号：songry
+密码：songry
+2.	在settings画面下，增加SSH Public Key
+3.	使用下述命令下载代码：
+#repo init -u  ssh://songry@10.1.74.60:29418/c3alfus_2/platform/manifest -b c3alfus_2
+#repo sync 
+
+
+================================================================================
+typedef enum
+{
+	DAC_GAIN_N23          = 34,	//-23	dB
+	DAC_GAIN_N22          = 35,	//-22	dB
+	DAC_GAIN_N21          = 36,	//-21	dB
+	DAC_GAIN_N20          = 37,	//-20	dB
+	DAC_GAIN_N19          = 38,	//-19	dB
+	DAC_GAIN_N18          = 39,	//-18	dB
+	DAC_GAIN_N17          = 40,	//-17	dB
+	DAC_GAIN_N16          = 41,	//-16	dB
+	DAC_GAIN_N15          = 42,	//-15	dB
+	DAC_GAIN_N14          = 43,	//-14	dB
+	DAC_GAIN_N13          = 44,	//-13	dB
+	DAC_GAIN_N12          = 45,	//-12	dB
+	DAC_GAIN_N11          = 46,	//-11	dB
+	DAC_GAIN_N10          = 47,	//-10	dB
+	DAC_GAIN_N09          = 48,	//-9	dB
+	DAC_GAIN_N08          = 49,	//-8	dB
+	DAC_GAIN_N07          = 50,	//-7	dB	default
+	DAC_GAIN_N06          = 51,	//-6	dB
+	DAC_GAIN_N05          = 52,	//-5	dB
+	DAC_GAIN_N04          = 53,	//-4	dB
+	DAC_GAIN_N03          = 54,	//-3	dB
+	DAC_GAIN_N02          = 55,	//-2	dB
+	DAC_GAIN_N01          = 56,	//-1	dB
+	DAC_GAIN_000          = 57,	// 0	dB
+	DAC_GAIN_001          = 58,	//+1	dB
+	DAC_GAIN_002          = 59,	//+2	dB
+	DAC_GAIN_003          = 60,	//+3	dB
+	DAC_GAIN_004          = 61,	//+4	dB  麦克风模组，顶灯模式
+	DAC_GAIN_005          = 62,	//+5	dB
+	DAC_GAIN_006_MAX      = 63	//+6	dB
+} cmd_dac_gain_id;
+
+电话模式：61 +4dB
+回声消除：50 -7dB
+唤醒模式：默认 49 -8dB
+
+
+================================================================================
+声卡：
+
+参考声卡：
+root@CV12QJ:/ # cat proc/asound/cards
+ 0 [imxbtcodec     ]: imx-btcodec - imx-btcodec
+                      imx-btcodec
+ 1 [ssi1cardaud6Ent]: ssi1-card-aud6- - ssi1-card-aud6-Ent-48K
+                      ssi1-card-aud6-Ent-48K
+ 2 [ssi2cardaud5Car]: ssi2-card-aud5- - ssi2-card-aud5-Carplay
+                      ssi2-card-aud5-Carplay
+ 3 [esaicardBtPhone]: esai-card-BtPho - esai-card-BtPhone
+                      esai-card-BtPhone
+ 4 [imxspdif       ]: imx-spdif - imx-spdif
+                      imx-spdif
+测试声卡：
+测试2声卡：
+tinyplay data/48K.wav -D 2 -d 0
+测试3声卡：
+tinyplay data/48K.wav -D 3 -d 0		  
+================================================================================
+
+查看SOC温度的命令如下：
+cat /sys/class/thermal/thermal_zone0/temp
+
+================================================================================
+
+repo设置proxy
+export http_proxy=http://qinxb:N.201007034276@proxy.neusoft.com:8080
+export https_proxy=https://qinxb:N.201007034276@proxy.neusoft.com:8080
+
+Git设置proxy
+git config --global http.proxy http://127.0.0.1:1080
+git config --global https.proxy https://127.0.0.1:1080
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+
+这样就可以下载Google原汁原味的Android源码了。
+
+================================================================================
+
+github的使用：
+账号：qinxb1@163.com(xiaobinqin)
+密码：qinxiaobin123
+
+
+windows github配置：
+1.下载git工具
+2. 配置git
+
+设置代理：
+git config --global http.proxy "qinxb:N.201007034276@proxy.neusoft.com:8080"
+
+如果代理设置后，仍不能使用的话，需要按如下设置：
+git config --global http.sslVerify false
+
+执行下载命令：
+git clone https://xiaobinqin:qinxiaobin123@github.com/xiaobinqin/myprojects.git
+
+================================================================================
+
+Input输入子系统：
+1.模块注册函数
+	static int __init evdev_init(void)
+	{
+		return input_register_handler(&evdev_handler);
+	}
+
+	static void __exit evdev_exit(void)
+	{
+		input_unregister_handler(&evdev_handler);
+	}
+
+	
+	static struct input_handler evdev_handler = {
+		.event		= evdev_event,
+		.connect	= evdev_connect,
+		.disconnect	= evdev_disconnect,
+		.fops		= &evdev_fops,
+		.minor		= EVDEV_MINOR_BASE,
+		.name		= "evdev",
+		.id_table	= evdev_ids,
+	};
+	
+	evdev_handler变量就是本次分析的handler对应的结构体变量，变量中填充最重要的有3个：
+	evdev_event函数：
+	evdev_connect函数：
+	evdev_fops变量：
+
+2、相关的数据结构
+
+	struct evdev {     
+	    int exist;
+	    int open;                                //  这个是用来作为设备被打开的计数
+	    int minor;                               //   handler 与 input设备匹配成功之后创建的设备对应的device的次设备号相对于基准次设备号的偏移量
+	    struct input_handle handle;   //   内置的一个  handle ，里面记录了匹配成功的input_dev 和 handler            
+	    wait_queue_head_t wait;
+	    struct evdev_client *grab;
+	    struct list_head client_list;       //   用来挂接与 evdev 匹配成功的evdev_client 的一个链表头 
+	    spinlock_t client_lock; /* protects client_list */
+	    struct mutex mutex;             //  互斥锁
+	    struct device dev;                 //  这个是handler 与 input设备匹配成功之后创建的设备对应的device
+	};
+	
+	struct evdev_client {
+	    struct input_event buffer[EVDEV_BUFFER_SIZE];    //  用来存放input_dev 事件的缓冲区
+	    int head;
+	    int tail;
+	    spinlock_t buffer_lock; /* protects access to buffer, head and tail */
+	    struct fasync_struct *fasync;
+	    struct evdev *evdev;              //   evdev 指针
+	    struct list_head node;            //  作为一个链表节点挂接到相应的 evdev->client_list 链表上
+	    struct wake_lock wake_lock;
+	    char name[28];            //  名字
+	};
+	
+	struct input_event {
+	    struct timeval time;        //  事件发生的事件
+	    __u16 type;                    //  事件的类型
+	    __u16 code;                   //   事件的码值
+	    __s32 value;                   //  事件的状态
+	};
+  
+================================================================================
+代码下载：
+==================================================================
+NXP Beta2代码：
+repo init -u ssh://USER@10.1.55.31:29418/c3alfus_2/platform/manifest -b imx-android-oreo
+repo sync –j2
+==================================================================
+COC C3_2.0代码：
+repo init -u ssh://USER @10.1.55.31:29418/c3alfus_2/platform/manifest -b c3alfus_2
+repo sync –j2
+==================================================================
+================================================================================
+
+设备树：
+一个驱动对应多个设备
+DO_MACHINE_STATE
+.dt_compat
+of_machine_is_compatible() 或 驱动中声明多个of_device_id 
+MACHINE_END
+
+
+
+OF API：
+of_machine_is_compatible()
+of_device_is_compatible()
+of_find_compatible_node()
+
+of_property_read_u8_array()
+of_property_read_u16_array()
+of_property_read_u32_array()
+of_property_read_u64_array()
+
+of_property_read_u8()
+of_property_read_u16()
+of_property_read_u32()
+of_property_read_u64()
+
+of_property_read_string()
+of_property_read_string_index()
+
+of_property_read_bool()
+
+
+of_iomap()
+of_address_to_resource()
+
+
+
+of_platform_bus_probe()
+of_i2c_register_devices()
+spi_register_master()
+
+struct device_node node;
+node = dev->of_node();
+nbottons = of_get_child_cont(node);
+
+of_get_property(node,"autorepeat",null);
+
+
+
+================================================================================
+
+1、创建新用户
+sudo adduser username
+1
+其中username是你要创建的用户的名字，然后设置密码还有相关信息就可以了
+
+2、赋予新用户sudo权限
+用adduser创建后的新用户是不能使用sudo的，因为还没有赋予相关root权限，执行以下代码赋予权限
+
+sudo usermod -a -G adm username
+sudo usermod -a -G sudo username
+1
+2
+3、删除用户
+当需要删除用户时可以使用以下指令
+
+sudo userdel -r username
+1
+这个指令会删除用户username并把该用户下的所有文件（/home/username/路径下的所有文件）都删除，若要保留这些文件而仅仅删除用户，可使用以下指令
+
+sudo userdel username
+
+================================================================================
+sudo apt-get install gcc-arm-none-eabi
+
+================================================================================
+Ubuntu挂载samba服务器
+
+export http_proxy=http://qinxb:N.201007034276@proxy.neusoft.com:8080
+export https_proxy=https://qinxb:N.201007034276@proxy.neusoft.com:8080
+
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0666"
+
+
+
+sudo apt-get install cifs-utils
+sudo apt install smbclient
+
+
+smbclient -L 10.1.74.196 -N
+
+
+sudo mount -v -t cifs //10.1.74.196/qinxb /home/neusoft/work/share/ -o 'username=qinxb,password=qinxb,vers=1.0'
+mount -v -t cifs //10.1.74.196/qinxb /home/neusoft/work/share_196/ -o 'username=qinxb,password=qinxb,vers=1.0'
+mount -v -t cifs //10.1.74.187/qinxb /home/neusoft/work/share_187/ -o 'username=qinxb,password=qinxb,vers=1.0'
+mount -v -t cifs //10.1.74.197/qinxb /home/neusoft/work/share_159/ -o 'username=qinxb,password=qinxb,vers=1.0'
+
+
+echo 0 > /sys/block/mmcblk0boot0/force_ro
+/dev/block/mmcblk0boot0
+echo 1 > /sys/block/mmcblk0boot0/force_ro
+
+echo 0 > /sys/block/mmcblk0boot1/force_ro
+/dev/block/mmcblk0boot1
+echo 1 > /sys/block/mmcblk0boot1/force_ro
+
+
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+================================================================================
+
+
+
+代码下载方法：
+==================================================================
+GE12代码：
+repo init -u ssh://USER@10.1.55.31:29418/c3alfus_2/platform/manifest -b c3_ge12_main
+repo sync –j2
+==================================================================
+挂载硬盘
+
+Step1：
+打开终端，执行以下命令查找新硬盘，通常是/dev/sdb1
+$ sudo fdisk -lu
+
+Step2：
+执行以下命令，给新硬盘创建磁盘分区
+$ sudo fdisk /dev/sdb
+输入n           ——新建分区
+回车或输入p     ——指定为主分区
+回车或输入1     ——指定只分一个区
+回车即可        ——指定起始扇区
+回车即可        ——指定结束扇区
+    输入w           ——保存设置并退出
+
+Step3：
+执行以下命令，格式化新分区
+$ sudo mkfs ext4 /dev/sdb1
+													
+Step4：
+执行以下命令，创建新分区挂载目录
+$ mkdir -p /home2
+
+Step5：
+执行以下命令，将新分区挂载到新的jenkins build目录
+$ sudo mount /dev/sdb1 /home2
+
+Step6：
+执行以下命令，查看新分区标识(UUID)
+$ sudo blkid
+
+Step7：
+将/dev/sdb1的UUID，追加到fstab文件中，以便开机自动加载
+执行以下命令，编译fstab文件
+$ sudo vim /etc/fstab
+在文件结尾处，按照以下格式追加新分区信息
+UUID=31875236-e82b-457d-836a-1a74d273aecb /home2       ext4       defaults        0        2
+
+Step8：
+执行以下命令，重启机器
+$ sudo reboot
+
+================================================================================
+
+服务器搭建：
+
+1、ubuntu(16.04)默认安装，安装盘在我这里，不要用别个，否则加密软件安装有问题
+
+2、网络代理配置为proxy.neusoft.com，不要dl-proxy.neusoft.com
+
+提示Ubuntu升级，不要升级
+
+3、安装加密软件，参考ftp://192.168.214.202/本部加密/linux
+cat /etc/issue
+a=4.4.0-67
+sudo apt-get install linux-headers-${a} linux-headers-${a}-generic linux-image-${a}-generic linux-image-extra-${a}-generic
+
+grep menuentry /boot/grub/grub.cfg
+
+sudo vi /etc/default/grub
+替换
+GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux 4.4.0-67-generic"
+
+sudo update-grub
+重启系统
+uname -r
+确认是4.4.0-67
+
+代理关掉
+
+copy LTSMInstall_x64到home目录
+chmod a+x LTSMInstall_x64
+sudo ./LTSMInstall_x64
+安装窗口跳转到，提示输入服务器IP时，请填写10.1.55.55
+提示输入用户名时，请填写公司邮箱帐户；
+提示输入密码时，请输入默认密码1234567a
+
+提示重启，点击重启
+设置加密工作目录，比如/home/yourname/worksec
+
+
+3、备份sources.list
+sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+
+4、更改source.list
+sudo vi /etc/apt/sources.list
+更改为如下内容：
+deb http://mirrors.aliyun.com/ubuntu/ xenial main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ xenial-updates main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ xenial-backports main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ xenial main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ xenial-updates main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ xenial-backports main restricted universe multiverse
+
+5、更新source
+sudo apt-get update
+
+6、安装软件包
+sudo apt-get install openjdk-8-jdk vim git openssh-server  bison build-essential curl flex git gnupg gperf libesd0-dev  liblz4-tool libncurses5-dev libsdl1.2-dev libxml2 libxml2-utils lzop pngcrush schedtool squashfs-tools xsltproc zip zlib1g-dev uuid-dev liblzo2-dev libacl1-dev maven g++-multilib gcc-multilib lib32ncurses5-dev lib32z1-dev lib32ncurses5 u-boot-tools libswitch-perl
+
+7、拷贝repo
+sudo cp git-repo /usr/bin/repo
+sudo chmod 777 /usr/bin/repo
+修改REPO_URL='git://10.1.55.16/repo'
+
+8、配置git
+git config --global user.name “chang yuanjun”
+git config --global user.email “changyj@neusoft.com”
+git config --global core.editor “vim”
+git config --global color.ui “auto”
+
+
+9、ssh key
+ssh-keygen
+eval `ssh-agent`
+ssh-add
+复制 .ssh/id_rsa.pub的内容
+
+10、下载代码
