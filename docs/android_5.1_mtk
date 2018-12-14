@@ -1,4 +1,19 @@
 ================================================================================
+NXP：
+	IMX6：
+		Android 4.3
+		Kernel version：3.0.35
+	IMX8：
+		Android O
+		Kernel version：4.9.105
+		
+		Android P
+		Kernel version：4.14.62
+
+MTK：
+	Android 5.1
+	Kernel version：3.10.65
+================================================================================
 代码下载：
 
 环境配置：
@@ -9,9 +24,298 @@
 	android 5.1 需要jdk为1.7
 	编译不同的代码，手动切换一下jdk版本即可。
 
+相关资料：
+	Geely MTK BSP资料及硬件相关资料(Block图)，均放到了下述路径。大家先看一下，熟悉一下硬件及代码。
+	\\10.1.74.196\qinxb\work\share\Geely_MTK
+
+SVN路径：
+	之前给大家单独COPY了软件资料，现已上传至SVN
+	http://10.1.55.2/svn/MP_Management/ManagementLibrary/GeelyCommon/02.Conception/吉利文档/04.功能协议文档/SX/20181210 和芯星通UM220-INS/软件资料.zip
+
+	祝工作顺利！
+
 ================================================================================
+编译系统：
+device/pvetec/emx8816aa/full_emx8816aa.mk
+
+	MTK_TARGET_PROJECT=device/pvetec
+
+	ifeq ($(TARGET_BUILD_VARIANT), eng)
+		KERNEL_DEFCONFIG ?= emx8816aa_debug_defconfig
+	else
+		KERNEL_DEFCONFIG ?= emx8816aa_defconfig
+	endif
+
+	PRELOADER_TARGET_PRODUCT ?= emx8816aa
+	LK_PROJECT ?= emx8816aa
+
+	PRODUCT_MANUFACTURER := alps
+	PRODUCT_NAME := full_emx8816aa
+	PRODUCT_DEVICE := emx8816aa
+	PRODUCT_MODEL := emx8816aa
+	PRODUCT_POLICY := android.policy_phone
+	PRODUCT_BRAND := alps
+
+pvetec/emx8816aa/BoardConfig.mk
+	include device/mediatek/mt6735/BoardConfig.mk
+	include device/mediatek/common/BoardConfig.mk
+
+	include device/pvetec/$(MTK_TARGET_PROJECT)/ProjectConfig.mk
+
+device/mediatek/mt6735/BoardConfig.mk
+
+	TARGET_ARCH := arm64
+	TARGET_ARCH_VARIANT := armv8-a
+	TARGET_CPU_ABI := arm64-v8a
+	TARGET_CPU_ABI2 :=
+	TARGET_CPU_VARIANT := cortex-a53
+	TARGET_CPU_SMP := true
+
+	TARGET_2ND_ARCH := arm
+	TARGET_2ND_ARCH_VARIANT := armv7-a-neon
+	TARGET_2ND_CPU_ABI := armeabi-v7a
+	TARGET_2ND_CPU_ABI2 := armeabi
+	TARGET_2ND_CPU_VARIANT := cortex-a53
+
+	TARGET_TOOLCHAIN_ROOT := prebuilts/gcc/$(HOST_PREBUILT_TAG)/aarch64/cit-aarch64-linux-android-4.9
+	TARGET_TOOLS_PREFIX := $(TARGET_TOOLCHAIN_ROOT)/bin/aarch64-linux-android-
+
+	KERNEL_CROSS_COMPILE:= $(abspath $(TOP))/$(TARGET_TOOLS_PREFIX)
+
+	ARCH_ARM_HAVE_TLS_REGISTER := true
+	TARGET_BOARD_PLATFORM ?= mt6735
+	TARGET_USERIMAGES_USE_EXT4 := true
+	TARGET_NO_FACTORYIMAGE := true
+	KERNELRELEASE := 3.4
+
+pvetec/emx8816aa/ProjectConfig.mk
+	配置了各种MK宏
+
+device/mediatek/mt6735/BoardConfig.mk
+
+	# mkbootimg header, which is used in LK
+
+	BOARD_KERNEL_BASE = 0x40000000
+	BOARD_KERNEL_OFFSET = 0x00080000
+	BOARD_RAMDISK_OFFSET = 0x04000000
+
+	BOARD_TAGS_OFFSET = 0xE000000
+
+	BOARD_KERNEL_CMDLINE = bootopt=64S3,32S1,32S1
+	BOARD_MKBOOTIMG_ARGS := --kernel_offset $(BOARD_KERNEL_OFFSET) --ramdisk_offset $(BOARD_RAMDISK_OFFSET) --tags_offset $(BOARD_TAGS_OFFSET)
+
+	# Add MTK compile options to wrap MTK's modifications on AOSP.
+	COMMON_GLOBAL_CFLAGS += -DMTK_AOSP_ENHANCEMENT
+	COMMON_GLOBAL_CPPFLAGS += -DMTK_AOSP_ENHANCEMENT
+
+	# ptgen
+	MTK_PTGEN_CHIP := $(shell echo $(TARGET_BOARD_PLATFORM) | tr '[a-z]' '[A-Z]')
+	include device/mediatek/build/build/tools/ptgen/$(MTK_PTGEN_CHIP)/ptgen.mk
+
+
+build/core/Makefile
+	INSTALLED_BOOTIMAGE_TARGET := $(PRODUCT_OUT)/boot.img
+	INSTALLED_BOOTLOADER_MODULE := $(PRODUCT_OUT)/bootloader
+
+	BOARD_KERNEL_CMDLINE = bootopt=64S3,32N2,64N2
+	
+	INTERNAL_BOOTIMAGE_ARGS ="--kernel out/target/product/emx8816aa/kernel --ramdisk out/target/product/emx8816aa/ramdisk.img --cmdline "bootopt=64S3,32N2,64N2" --base 0x40000000 --ramdisk_offset 0x04000000 --kernel_offset 0x00080000 --tags_offset 0xE000000 --board 1544682395"
+
+Kernel config file:
+	pvetec/emx8816aa/full_emx8816aa.mk:40:KERNEL_DEFCONFIG ?= emx8816aa_defconfig
+		arch/arm64/configs/emx8816aa_defconfig
+		arch/arm64/configs/emx8816aa_debug_defconfig
+
+DTS:
+	arch/arm64/configs/emx8816aa_debug_defconfig:302:CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES="emx8816aa"
+	arch/arm64/configs/emx8816aa_defconfig:301:CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES="emx8816aa"
+		arch/arm64/boot/dts/emx8816aa.dts
+
+	KERNEL_ZIMAGE_OUT := $(KERNEL_OUT)/arch/$(TARGET_ARCH)/boot/Image.gz-dtb
+
+	kernel-3.10/arch/arm64/boot/Makefile
+		$(obj)/Image.gz-dtb: $(obj)/Image.gz $(DTB_OBJS) FORCE
+			$(call if_changed,cat)
+
+PRELOADER:
+	mediatek/build/build/makemtk.mk:118:PRELOADER_IMAGES := mediatek/preloader/bin/preloader_emx8816aa.bin
+	mediatek/build/build/makemtk.mk
+	
+
+			
+Audio Hal:
+	vendor/mediatek/proprietary/platform/mt6735/hardware/audio
+
+
 ================================================================================
+重要的镜像文件：
+
+MTK bootloader：
+	Pre-loader -》lk主要干的事情：
+
+	1、初始化DRAM等必须硬件;
+	2、与flashtool USB握手，download 相关检测 & sec boot检测；
+	3、将lk载入DRAM，若实现了EL3则把atf载入内存;
+	4、跳转到lk，若实现了EL3，则先跳转到atf，初始化atf后再跳转回lk初始化；
+
+	lk -》 kernel 主要干的事情：
+	1、打开MMU,使能I/D-cache，加速lk执行，显示logo、充电相关；
+	2、从emmc中boot分区取出boot.img解压，将根文件系统（ramdisk）、zImage load到DRAM；
+	3、解析dtb，写入到DRAM指定区域；
+	4、关闭MMU、irq / fiq，关闭I/D-cache, 拉起 kernel;
+
+	来源：CSDN 
+	原文：https://blog.csdn.net/forever_2015/article/details/53047993 
+
+
+
+preloader:
+	作用：
+		Pre-loader主要干的事情就是初始化某些硬件，比如： UART,GPIO,DRAM,TIMER,RTC,PMIC 等等，建立起最基本的运行环境,最重要的就是初始化DRAM.
+		
+		main 函数小结：
+			1、各种硬件初始化(uart、pmic、wdt、timer、mem..)；
+			2、获取系统启动模式等，保存在全局变量中；
+			3、Security check，跟secro.img相关；
+			4、如果系统已经实现el3，则进入tz初始化；
+			5、获取lk加载到DRAM的地址（固定值）,然后从ROM中找到lk分区的地址， 如果没找到jump_addr，则 goto error；
+			6、battery check，如果没有电池就会陷入while(1);
+			7、jump到lk(如果有实现el3，则会先jump到el3，然后再回到lk)
+
+		
+	配置文件：包括uart配置，ATF，SDRAM等，启动信息；
+		bootable/bootloader/preloader/platform/mt6735/default.mak
+
+	参考下述MTK preloader资料：
+		https://blog.csdn.net/forever_2015/article/details/53000643
+
+	入口函数：
+		bootable/bootloader/preloader/platform/mt6735/src/core/main.c
+	
+	编译命令：
+		make -C bootable/bootloader/preloader -s -f Makefile  PRELOADER_OUT=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/out/target/product/emx8816aa/obj/PRELOADER_OBJ MTK_PROJECT=emx8816aa TOOL_PATH=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/device/mediatek/build/build/tools ROOTDIR=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0
+
+	编译配置：
+	device/pvetec/emx8816aa/full_emx8816aa.mk
+		PRELOADER_TARGET_PRODUCT ?= emx8816aa
+		LK_PROJECT ?= emx8816aa
+	
+	start to parse fig file!
+	===========================================
+	Platform Feature:
+	CFG_FPGA_PLATFORM= 0
+	CFG_EVB_PLATFORM= 0
+	CFG_BATTERY_DETECT= 1
+	CFG_PMT_SUPPORT=
+	===========================================
+	Communication Feature:
+	CFG_UART_TOOL_HANDSHAKE= 0
+	CFG_USB_TOOL_HANDSHAKE= 1
+	CFG_USB_DOWNLOAD= 1
+	CFG_LOG_BAUDRATE= 921600
+	CFG_META_BAUDRATE= 115200
+	CFG_UART_LOG= UART1
+	CFG_UART_META= UART1
+	CFG_EMERGENCY_DL_SUPPORT= 1
+	CFG_EMERGENCY_DL_TIMEOUT_MS= 1000*5
+	CFG_USB_UART_SWITCH= 1
+	===========================================
+	CFG_LOAD_AP_ROM= 0
+	CFG_LOAD_MD_ROM= 0
+	CFG_LOAD_MD_RAMDISK= 0
+	CFG_LOAD_CONN_SYS= 0
+	CFG_UBOOT_MEMADDR= 0x41E00000
+	CFG_AP_ROM_MEMADDR= 0x62000000
+	CFG_MD1_ROM_MEMADDR= 0x42000000
+	CFG_MD1_RAMDISK_MEMADDR= 0x49CC0000
+	CFG_MD2_ROM_MEMADDR= 0x42000000
+	CFG_MD2_RAMDISK_MEMADDR= 0x43400000
+	CFG_CONN_SYS_MEMADDR= 0x45A00000
+	ONEKEY_REBOOT_NORMAL_MODE_PL= 1
+	KPD_USE_EXTEND_TYPE= 0
+	KPD_PMIC_LPRST_TD= 1
+	MTK_PMIC_RST_KEY=
+	CFG_ATF_SUPPORT= 1
+	CFG_ATF_LOG_SUPPORT= 1
+	CFG_TEE_SUPPORT= 0
+	CFG_TRUSTONIC_TEE_SUPPORT= 0
+	CFG_TEE_SECURE_MEM_PROTECTED= 1
+	CFG_TEE_TRUSTED_APP_HEAP_SIZE= 0xA00000
+	MTK_EFUSE_WRITER_SUPPORT= no
+
+lk:
+	编译命令：
+		make -C bootable/bootloader/lk   BOOTLOADER_OUT=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/out/target/product/emx8816aa/obj/BOOTLOADER_OBJ ROOTDIR=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0 emx8816aa
+	
+	编译配置：
+	device/pvetec/emx8816aa/full_emx8816aa.mk
+		PRELOADER_TARGET_PRODUCT ?= emx8816aa
+		LK_PROJECT ?= emx8816aa
+
+	代码解析：
+		入口函数：
+		bootable/bootloader/lk/kernel/main.c
+	
+	kmain 小结：
+		1.初始化线程池，建立线程管理链表、运行队列等；
+		2.初始化各种平台硬件，包括irq、timer，wdt，uart，led，pmic，i2c，gpio等，建立lk基本运行环境；
+		3.初始化内核heap、内核timer等；
+		4.创建系统初始化主线程，进入bootstrap2执行，使能中断，当前线程进入idle;
+
+		来源：CSDN 
+		原文：https://blog.csdn.net/forever_2015/article/details/53047993 
+	
+	
+boot.img
+	编译命令：
+		make -C kernel-3.10 O=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/out/target/product/emx8816aa/obj/KERNEL_OBJ ARCH=arm64             CROSS_COMPILE=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/prebuilts/gcc/linux-x86/aarch64/cit-aarch64-linux-android-4.9/bin/aarch64-linux-android- ROOTDIR=/home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0 emx8816aa_defconfig
+		
+		注意：make xxx_defconfig生成的.config可以直接make zImage，相当于copy mini2440_defconfig .config再执行make menuconfig的效果。
+		
+		参考文档：
+		https://blog.csdn.net/kangear/article/details/39553337
+		
+		OBJCOPY arch/arm64/boot/Image
+		DTC     arch/arm64/boot/dts/emx8816aa.dtb
+		GZIP    arch/arm64/boot/Image.gz
+		CAT     arch/arm64/boot/Image.gz-dtb
+	
+	Kernel配置文件：
+		pvetec/emx8816aa/full_emx8816aa.mk:40:KERNEL_DEFCONFIG ?= emx8816aa_defconfig
+			arch/arm64/configs/emx8816aa_defconfig
+			arch/arm64/configs/emx8816aa_debug_defconfig
+
+bootlogo： 	
+	logo.bin生成过程：
+		1.path:
+			dev/logo/ecarx1080p/ecarx1080p_uboot.bmp
+		
+		2.将.bmp图片转换成.raw文件
+			命令：
+			$dev/logo/tool/bmp_to_raw /home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/out/target/product/emx8816aa/obj/BOOTLOADER_OBJ/build-emx8816aa/dev/logo/ecarx1080p/ecarx1080p_uboot.raw dev/logo/ecarx1080p/ecarx1080p_uboot.bmp
+			
+		3.将所有的.raw文件拼接为ecarx1080p.raw文件
+			$dev/logo/tool/zpipe -l 9 ecarx1080p.raw ecarx1080p_uboot.raw ecarx1080p_battery.raw ecarx1080p_num_1.raw
+			
+		4.将.raw文件转换为.bin文件
+			$dev/logo/../../scripts/mkimage /home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/out/target/product/emx8816aa/obj/BOOTLOADER_OBJ/build-emx8816aa/dev/logo/ecarx1080p.raw LOGO > /home/qinxb/work/geely/mtk/Ecarx-Android-5.1-E01-v1.0/out/target/product/emx8816aa/obj/BOOTLOADER_OBJ/build-emx8816aa/logo.bin
+	
+
+作用是？：		
+	python device/mediatek/build/build/tools/check_kernel_config.py -c device/pvetec/emx8816aa/ProjectConfig.mk -l bootable/bootloader/lk/  project/emx8816aa.mk -p emx8816aa
+	python device/mediatek/build/build/tools/check_kernel_config.py -c device/pvetec/emx8816aa/ProjectConfig.mk -b bootable/bootloader/  preloader/custom/emx8816aa/emx8816aa.mk -p emx8816aa
+	python device/mediatek/build/build/tools/check_kernel_config.py -c device/pvetec/emx8816aa/ProjectConfig.mk -k kernel-3.10/arch/arm64/  configs/emx8816aa_defconfig -p emx8816aa
+
+作用是？：
+	python ./build/tools/releasetools/rootcheck.py out/target/product/emx8816aa/system out/target/product/emx8816aa/lk.bin out/target/product/emx8816aa/recovery.img out/target/product/emx8816aa/boot.img out/target/product/emx8816aa/logo.bin out/target/product/emx8816aa/system/data
+	
 ================================================================================
+MTK资源情况：
+	已知：
+	uart: 4路
+	IIS : 3路，2出1入
+	SPI ：1路
+
 ================================================================================
 ================================================================================
 ================================================================================

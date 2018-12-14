@@ -1,4 +1,20 @@
 =======================================================================================
+NXP：
+	IMX6：
+		Android 4.3
+		Kernel version：3.0.35
+	IMX8：
+		Android O
+		Kernel version：4.09
+		
+		Android P
+		Kernel version：4.14
+
+MTK：
+	Android 5.1
+	Kernel version：4.14
+
+=======================================================================================
 Build:
 
 source build/envsetup.sh
