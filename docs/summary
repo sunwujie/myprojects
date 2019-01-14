@@ -77,9 +77,119 @@ README：
 	When the make command is complete, the build-log.txt file contains the execution output. Check for any errors.
 
 ================================================================================
+atomic_read
+atomic_dec
+atomic_set(&cam->video_user_count, 0);
+
+Kernel用信号量进行线程同步():
+	struct semaphore busy_lock;
+	init_MUTEX(&cam->busy_lock);
+
+	up(&cam->busy_lock);
+	down(&cam->busy_lock);
+
+	if (down_interruptible(&cam->busy_lock))
+	{
+		V4L2_ERROR("ERROR : Be Interrupted");
+		return -EINTR;
+	}
+
+进程的信号处理检测：
+	signal_pending(current)
+
+	检查当前进程是否有信号处理，返回不为0表示有信号需要处理；
+	经常我们在睡眠的代码中 会看到这样的例子：
+		if (signal_pending(current)) {
+		 ret = -ERESTARTSYS;
+		 return ret;
+		}
+		关于 -ERESTARTSYS 到底是什么意思?
+		-ERESTARTSYS表示信号函数处理完毕后重新执行信号函数前的某个系统调用.
+	也就是说，如果信号函数前有发生系统调用，在调度用户信号函数之前,内核会检查系统调用的返回值，看看是不是因为这个信号而中断了系统调用.如果返回值 -ERESTARTSYS,并且当前调度的信号具备-ERESTARTSYS属性,系统就会在用户信号函数返回之后再执行该系统调用
+
+	这个过程，不必深究，你就知道上层的库函数 ，当收到 -ERESTARTSYS这个返回值后，对于linux来讲，会自动的重新调用这个调用就可以了。
+
+自旋锁：
+	spin_lock_init(&evdev->client_lock);
+	spin_lock(&evdev->client_lock);
+	spin_unlock(&evdev->client_lock);
+
+
+EPOLL机制：
+	wait_queue_head_t wait;
+	init_waitqueue_head(&evdev->wait);
+	wake_up_interruptible(&evdev->wait);
+	wait_event_interruptible(evdev->wait,client->packet_head != client->tail || !evdev->exist);
+	poll_wait(file, &evdev->wait, wait);
+
+LOCK：
+	mutex_init(&evdev->mutex);
+	mutex_lock(&evdev->mutex);
+	mutex_lock_interruptible(&evdev->mutex);
+	mutex_unlock(&evdev->mutex);
+
+RCU:
+	rcu_dereference(evdev->grab);
 ================================================================================
+
+Linux内核同步机制之（一）：原子操作
+http://www.wowotech.net/kernel_synchronization/atomic.html
+
+Linux内核同步机制之（二）：Per-CPU变量
+http://www.wowotech.net/kernel_synchronization/per-cpu.html
+
+Linux内核同步机制之（三）：memory barrier
+http://www.wowotech.net/kernel_synchronization/memory-barrier.html
+
+Linux内核同步机制之（四）：spin lock
+http://www.wowotech.net/kernel_synchronization/spinlock.html
+
+Linux内核同步机制之（五）：Read/Write spin lock
+http://www.wowotech.net/kernel_synchronization/rw-spinlock.html
+
+Linux内核同步机制之（六）：Seqlock
+http://www.wowotech.net/kernel_synchronization/seqlock.html
+
+Linux内核同步机制之（七）：RCU基础
+http://www.wowotech.net/kernel_synchronization/rcu_fundamentals.html
+
+
 ================================================================================
+getevent命令：
+	$getevent
+		add device 1: /dev/input/event3
+		  name:     "ublox_gyr"
+		add device 2: /dev/input/event2
+		  name:     "ublox_acc"
+		add device 3: /dev/input/event1
+		  name:     "kc-2-ts"
+		add device 4: /dev/input/event0
+		  name:     "rpc-keys"
+
+	$cat /sys/class/input/input1/*
+		input:b0018v8000p0400e0010-e0,1,3,k14A,ra30,35,36,39,3A,mlsfw
+		kc-2-ts
+		I2C
+		2
+		PRODUCT=18/8000/400/10
+		NAME="kc-2-ts"
+		PHYS="I2C"
+		PROP=2
+		EV=b
+		KEY=400 0 0 0 0 0 0 0 0 0 0
+		ABS=6610000 0
+		MODALIAS=input:b0018v8000p0400e0010-e0,1,3,k14A,ra30,35,36,39,3A,mlsfw
+
 ================================================================================
+Kernel代码下载方法：
+使用下述命令均可下载Kernel源码
+	git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+	git clone https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+	git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/stable/linux.git
+
+网址：
+https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/
+
 ================================================================================
 ================================================================================
 ================================================================================
