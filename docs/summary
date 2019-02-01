@@ -191,7 +191,21 @@ Kernel代码下载方法：
 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/
 
 ================================================================================
+repo命令：
+
+将所有代码回退到某个日期：
+	repo forall -c 'git reset --hard $(git log -1  --before="2018-10-30"  --pretty=format:"%H")'
+
+全base搜索相关人的提交记录：
+	repo forall -c 'echo $REPO_PATH;git --no-pager log --author="qinxb\|zhai.wb\|songry\|sun_xd\|zhangjianh" --no-merges --pretty=format:"%h   %an   %s" ;echo'
+
+获取特定commit信息：
+	git rev-parse --verify $REPO_LREV
+
 ================================================================================
+i2c_smbus_write_byte_data(ds90927_i2c_client, reg, val);
+
+
 ================================================================================
 ================================================================================
 ================================================================================

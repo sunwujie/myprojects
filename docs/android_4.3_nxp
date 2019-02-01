@@ -608,6 +608,10 @@ V4L2的视频输入，输出是什么？
 	echo 0 > /proc/sys/kernel/printk
 	echo 7 > /proc/sys/kernel/printk
 
+设置uboot参数：
+	keep_bootcon
+	可保留ttymxc启动前的log
+	
 监听uevent事件：
 	uevent_listener & //查看touch事件
 

@@ -1,0 +1,19 @@
+结构体：
+input_handler 
+input_dev
+
+函数：
+drivers/input/input.c
+	input_register_device
+		/* 将input_dev 挂在input_dev_list上  */                                     
+		list_add_tail(&dev->node, &input_dev_list);              
+		/* 遍历所有的事件的处理驱动,找到匹配的就将该设备依附上去  */                
+		list_for_each_entry(handler, &input_handler_list, node)                     
+			input_attach_handler(dev, handler);    //进去看看
+
+
+
+	input_register_handler
+	
+	input_register_handle
+                              

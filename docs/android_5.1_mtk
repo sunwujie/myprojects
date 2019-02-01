@@ -18,12 +18,21 @@ MTK：
 
 环境配置：
 	基于android 4.3的编译环境，安装下述包，即可编译mtk的android 5.1
-	sudo apt-get install openjdk-7-jdk gperf libxml2-utils make python-networkx zlib1g-dev:i386 zip build-essential flex mingw32 tofrodos libswitch-perl
-
+	sudo apt-get install sudo apt-get install  openjdk-7-jdk gperf libxml2-utils make python-networkx zlib1g-dev:i386 zip build-essential flex mingw32 tofrodos libswitch-perl
+	
 	android 4.3需要jdk为1.6
 	android 5.1 需要jdk为1.7
 	编译不同的代码，手动切换一下jdk版本即可。
 
+	安装make 3.8.1
+	https://ftp.gnu.org/gnu/make/   
+	下载make-3.81.tar.gz
+	解压
+		cd
+		./configure
+		make
+		sudo make install
+	
 相关资料：
 	Geely MTK BSP资料及硬件相关资料(Block图)，均放到了下述路径。大家先看一下，熟悉一下硬件及代码。
 	\\10.1.74.196\qinxb\work\share\Geely_MTK
@@ -317,21 +326,232 @@ MTK资源情况：
 	SPI ：1路
 
 ================================================================================
+E01 MTK 代码下载：
+	repo init -u ssh://qinxb@10.1.55.31:29418/E01/platform/manifest -b master
+	repo sync
+
+JDK配置:
+	sudo add-apt-repository ppa:openjdk-r/ppa 
+	sudo apt-get update 
+	sudo apt-get install openjdk-7-jdk
+
 ================================================================================
+
+Android SELinux Enforing 和 Permissive 模式切换
+	1、Running mode
+	adb shell setenforce 1       // Enforing
+	adb shell setenforce 0       // Permissive 
+
+	2、Build mode：
+	Ref  file ：  system\core\init\Android.mk  增加定义
+	         LOCAL_CFLAGS += -DALLOW_DISABLE_SELINUX=1
+
+	3. adb shell getenforce
+	result : permissive 
+
 ================================================================================
+MTK启动模式：
+
+设备文件：
+	/sys/class/BOOT/BOOT/boot/boot_mode
+
+启动类型：
+	MT_FACTORY_BOOT
+	MT_ATE_FACTORY_BOOT
+		factory_init.rc
+		factory_init.project.rc
+	
+	
+	MT_META_BOOT
+		meta_init.rc
+		meta_init.project.rc
+
 ================================================================================
+Audio：
+    MT_SOC_DL1_PCM@0x11220000 {
+            compatible = "mediatek,mt_soc_pcm_dl1";
+            reg = <0x11220000 0x1000>;
+            interrupts = <0 144 0x8>;
+            audclk-gpio = <143 0>;
+            audmiso-gpio = <144 0>;
+            audmosi-gpio = <145 0>;
+            vowclk-gpio = <148 0>;
+            extspkamp-gpio = <129 0>;
+            extspkamp_2-gpio = <128 0>;
+            rcvspkswitch-gpio = <120 0>;
+            i2s1clk-gpio = <135 0>;
+            i2s1dat-gpio = <137 0>;
+            i2s1mclk-gpio = <134 0>;
+            i2s1ws-gpio = <136 0>;
+    };
+
+	MT_SOC_DL1_PCM@0x11220000 {
+                compatible = "ak7738";
+                reg = <0x18>;
+        };
+	};
+
 ================================================================================
+FB：
+    MTKFB@5e200000 {
+            compatible = "mediatek,MTKFB";
+            reg = <0x5F000000 0x1000000>;
+    };
 ================================================================================
+UART：
+    AP_DMA_UART0_RX@0x11000400 {
+            compatible = "mediatek,AP_DMA_UART0_RX";
+            reg = <0x11000400 0x80>;
+            interrupts = <0 104 0x8>;
+    };
+
+    AP_DMA_UART1_TX@0x11000480 {
+            compatible = "mediatek,AP_DMA_UART1_TX";
+            reg = <0x11000480 0x80>;
+            interrupts = <0 105 0x8>;
+    };
+
+
 ================================================================================
+I2C：
+	驱动：
+		misc/mediatek/i2c/mt6735/i2c.c
+	DTS节点：
+		I2C0@0x11007000 {
+				compatible = "mediatek,I2C0";
+				cell-index = <0>;
+				reg = <0x11007000 0x1000>;
+				interrupts = <0 84 0x8>,
+							 <0 99 0x8>;
+		};
 ================================================================================
+SPI：
+	驱动：
+		misc/mediatek/spi/mt6735/spi.c
+		
+	DTS节点：
+		SPI1@0x1100A000 {
+        cell-index = <0>;
+        spi-padmacro = <0>;
+        compatible = "mediatek,SPI1";
+        reg = <0x1100A000 0x1000>;
+        interrupts = <0 118 0x8>;
+		};
 ================================================================================
+GPIO：
+	drivers/misc/mediatek/gpio/mt6735/gpio_init.h
+工具：
+	kernel-3.10/tools/dct/DrvGen.exe
+
+	//上拉或下拉 选择设置：
+	mt_set_gpio_pull_select(COL_REG[i], 0);
+	mt_set_gpio_pull_select(COL_REG[i], 1);
+	//拉高(设置1), 拉低(设置0) 操作： 
+
+	//设置输入 输出：
+	mt_set_gpio_dir(u32 pin, u32 dir)  设置输入还是输出
+	mt_get_gpio_dir(u32 pin)        获取输入输出的状态
+
+	mt_set_gpio_pull_enable(u32 pin, u32 enable)  上下拉使能
+	mt_get_gpio_pull_enable(u32 pin)      获取上下拉状态
+
+	mt_set_gpio_pull_select(u32 pin, u32 select)   上拉或下拉 选择设置
+	mt_get_gpio_pull_select(u32 pin)  
+
+	mt_set_gpio_inversion(u32 pin, u32 enable) 
+	mt_get_gpio_inversion(u32 pin)  
+
+	mt_set_gpio_out(u32 pin, u32 output)  
+	mt_get_gpio_out(u32 pin)   
+	mt_get_gpio_in(u32 pin)     
+
+	mt_set_gpio_mode(u32 pin, u32 mode)  
+	mt_get_gpio_mode(u32 pin)    
+
+	mt_set_clock_output(u32 num, u32 src, u32 div) 
+	mt_get_clock_output(u32 num, u32 *src, u32 *div) 
+
+    mt_set_gpio_dir(GPIO_SPEAKER_EN_PIN,GPIO_DIR_OUT); // output
+    mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
 ================================================================================
+Touch：
+	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C
+	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C/tp_ti947_driver.c
+	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C/Kconfig
+	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C/Makefile
+	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C/tpd_custom_ti947.h
+	
+	
+	947touch驱动：
+       框架：
+              drivers/input/touchscreen/mediatek/mtk_tpd.c
+              drivers/input/touchscreen/mediatek/tpd_setting.c
+       驱动：
+              drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C/tp_ti947_driver.c
+	
 ================================================================================
+显示（Framebuffer）：
+	驱动：
+		drivers/misc/mediatek/videox/mt6735/mtkfb.c
+	DTS：
+		arch/arm64/boot/dts/emx8816aa.dts
+	    MTKFB@5e200000 {
+                compatible = "mediatek,MTKFB";
+                reg = <0x5F000000 0x1000000>;
+        };
+
+
+947芯片驱动：
+       drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/cpt_clap070wp03xg_sn65dsi83_ti947.c
+       drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/sn65dsi83_i2c.c
+       drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/ti947_i2c.c
+       
+       drivers/misc/mediatek/lcm/mt65xx_lcm_list.c
+       misc/mediatek/videox/mt6735/disp_lcm.c
+       misc/mediatek/mach/mt6735/emx8816aa/lcm/mt65xx_lcm_list.c
+
 ================================================================================
+cmdline：
+	console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O bootopt=64S3,32N2,64N2 lcm=0-cpt_clap070wp03xg_sn65dsi83_ti947 fps=6377 vram=19726336 androidboot.selinux=permissive printk.disable_uart=0 ddebug_query="file *mediatek* +p ; file *gpu* =_" bootprof.pl_t=5123 bootprof.lk_t=1492 boot_reason=0 androidboot.serialno=0123456789ABCDEF androidboot.bootreason=power_key androidboot.devicetype=common androidboot.devicetype=commoncommon gpt=1
+
 ================================================================================
+Board boot：
+	drivers/misc/mediatek/mach/mt6735/mt_devs.c:2018:__init int mt_board_init(void)
+	drivers/misc/mediatek/mach/mt6735/include/mach/devs.h:22:extern int mt_board_init(void);
+	
 ================================================================================
+Kernel build：
+	arch/arm64/configs/emx8816aa_debug_defconfig
+		CONFIG_MTK_PLATFORM="mt6735"
+		CONFIG_ARCH_MTK_PROJECT="emx8816aa"
+		CONFIG_CUSTOM_KERNEL_LCM="cpt_clap070wp03xg_sn65dsi83_ti947"
+	
+	MTK_PLATFORM=mt6735
+	MTK_CUSTOM_PATH  := $(srctree)/drivers/misc/mediatek
+	
+	MTK_PLATFORM_PATH_ROOT := $(srctree)/drivers/misc/mediatek/mach/$(MTK_PLATFORM)
+								drivers/misc/mediatek/mach/mt6735
+	MTK_PROJECT_PATH_ROOT := $(srctree)/drivers/misc/mediatek/mach/$(MTK_PLATFORM)/$(ARCH_MTK_PROJECT)
+								drivers/misc/mediatek/mach/mt6735/emx8816aa
+	
 ================================================================================
+printk：
+	驱动：
+		misc/mediatek/mtprof/mt_printk_ctrl.c
+	设备节点：
+		/proc/mtprintk
+	Uart：
+		drivers/misc/mediatek/uart/uart.c
+	printk：
+		kernel/printk.c
+	LK中设置参数：
+		printk.disable_uart=0 ddebug_query="file *mediatek* +p 
+		
+
 ================================================================================
+LK：
+	启动kernel
+	bootable/bootloader/lk/app/mt_boot/mt_boot.c
 ================================================================================
 ================================================================================
 ================================================================================
