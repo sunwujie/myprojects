@@ -440,6 +440,12 @@ SPI：
 ================================================================================
 GPIO：
 	drivers/misc/mediatek/gpio/mt6735/gpio_init.h
+	
+PINCTRL：
+	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/pinctrl-mtk-mt6735.h
+	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/mt6735-pinfunc.h
+	
+	
 工具：
 	kernel-3.10/tools/dct/DrvGen.exe
 
@@ -509,7 +515,13 @@ Touch：
        drivers/misc/mediatek/lcm/mt65xx_lcm_list.c
        misc/mediatek/videox/mt6735/disp_lcm.c
        misc/mediatek/mach/mt6735/emx8816aa/lcm/mt65xx_lcm_list.c
-
+HDMI：
+	   drivers/misc/mediatek/ext_disp/mt6735/extd_hdmi_drv.c
+DSI：
+		drivers/misc/mediatek/dispsys/mt6735/ddp_dsi.c:2585:	lcm_drv->set_util_funcs(utils);
+DPI：
+		drivers/misc/mediatek/dispsys/mt6735/ddp_dpi.c:815:    lcm_drv->set_util_funcs(utils);
+	   
 ================================================================================
 cmdline：
 	console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O bootopt=64S3,32N2,64N2 lcm=0-cpt_clap070wp03xg_sn65dsi83_ti947 fps=6377 vram=19726336 androidboot.selinux=permissive printk.disable_uart=0 ddebug_query="file *mediatek* +p ; file *gpu* =_" bootprof.pl_t=5123 bootprof.lk_t=1492 boot_reason=0 androidboot.serialno=0123456789ABCDEF androidboot.bootreason=power_key androidboot.devicetype=common androidboot.devicetype=commoncommon gpt=1
@@ -553,7 +565,14 @@ LK：
 	启动kernel
 	bootable/bootloader/lk/app/mt_boot/mt_boot.c
 ================================================================================
+MIPI相关资料：
+	https://blog.csdn.net/kris_fei/article/details/77774995
+	https://blog.csdn.net/changqing1990/article/details/78595565
+	https://blog.csdn.net/changqing1990/article/details/81128552
+
 ================================================================================
+BT565
+
 ================================================================================
 ================================================================================
 ================================================================================
