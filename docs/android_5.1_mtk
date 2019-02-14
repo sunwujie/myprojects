@@ -574,7 +574,74 @@ MIPI相关资料：
 BT565
 
 ================================================================================
+LK：
+	宏定义：
+	target/emx8816aa/rules.mk
+
+	启动流程：
+	kernel/main.c                      //LK入口函数：
+	void kmain(void)
+		kernel/thread.c:536:void thread_init_early(void)
+		thread_init_early
+		
+		platform/mt6735/platform.c     //platform入口 
+		platform_early_init
+			    /* initialize the uart */
+				uart_init_early();
+				platform/mt6735/uart.c:349:void uart_init_early(void)
+				
+				mtk_wdt_init();
+				
+				//i2c init
+				i2c_hw_init();
+				platform/mt6735/mt_i2c.c:846:int i2c_hw_init(void)
+		
+				pmic_init();
+		
+		target/emx8816aa/init.c:47:void target_early_init(void)
+		target_early_init
+
+		
+	UART：	
+		platform/mt6735/uart.c:349:void uart_init_early(void)
+	
+	I2C：
+		platform/mt6735/mt_i2c.c:846:int i2c_hw_init(void)
+	
+	Display：
+		arch/arm/crt0.S:187:	bl		kmain
+		kernel/main.c:76:void kmain(void)
+		kernel/main.c:128:	thread_resume(thread_create("bootstrap2", &bootstrap2, NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE));
+		kernel/main.c:179:	platform_init();
+		platform/mt6735/platform.c:684:    mt_disp_init((void *)g_fb_base);
+		platform/mt6735/mt_disp_drv.c:235:        primary_display_init(NULL);
+		platform/mt6735/primary_display.c:347:	return disp_lcm_get_name(pgc->plcm);
+		platform/mt6735/disp_lcm.c:504:const char* disp_lcm_get_name(disp_lcm_handle *plcm)
+		platform/mt6735/include/platform/disp_lcm.h:32:const char* disp_lcm_get_name(disp_lcm_handle *plcm);
+
+		
+	Logo显示：
+		kernel/main.c:179:	platform_init();
+		platform/mt6735/platform.c:883:        mt_disp_show_boot_logo();
+		platform/mt6735/mt_logo.c:136:void mt_disp_show_boot_logo(void)
+		
+		图片：
+		dev/logo/ecarx1080p/ecarx1080p_uboot.bmp
+		
+	DSI：
+		platform/mt6735/platform.c:684:    mt_disp_init((void *)g_fb_base);
+		platform/mt6735/mt_disp_drv.c:235:        primary_display_init(NULL);
+		platform/mt6735/primary_display.c:689:	ret = disp_lcm_init(pgc->plcm);
+		platform/mt6735/disp_lcm.c:461:            ret = DSI_set_cmdq( _get_dst_module_by_lcm(plcm), NULL, data_array, 1, 1); // read maximum return size.
+		platform/mt6735/ddp_dsi.c:2029:	DISPCHECK("DSI_set_cmdq, module=%s, cmdq=0x%08x\n", module_name, cmdq);
+		
 ================================================================================
+Kernel：
+	WATCHDOG：
+	drivers/misc/mediatek/wdt/mt6735/mtk_wdt.c
+	
+	
+
 ================================================================================
 ================================================================================
 ================================================================================
