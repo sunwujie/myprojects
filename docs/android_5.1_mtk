@@ -439,7 +439,21 @@ SPI：
 		};
 ================================================================================
 GPIO：
+	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/cust_gpio_boot.h
 	drivers/misc/mediatek/gpio/mt6735/gpio_init.h
+	
+	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/cust_gpio_boot.h:1015:#define GPIO119_SMT       GPIO_SMT_DISABLE
+	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/cust_gpio_usage.h
+	
+	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/cust_gpio_usage.h:21:#define GPIO_CTP_EINT_PIN         (GPIO11 | 0x80000000)
+	drivers/misc/mediatek/mach/mt6735/include/mach/mt_clkbuf_ctl.h:24:#define GPIO_RFIC0_BSI_CS         (GPIO110|0x80000000)
+	drivers/misc/mediatek/mach/mt6735/include/mach/gpio_const.h:46:    GPIO8  , GPIO9  , GPIO10 , GPIO11 , GPIO12 , GPIO13 , GPIO14 , GPIO15 ,
+	drivers/misc/mediatek/multibridge/mt6735/mt8193/inc/mt8193_gpio.h:57:	GPIO_PIN_GPIO11,
+	
+	drivers/misc/mediatek/gpio/mt6735/mt_gpio_debug.c
+	
+DTS：
+	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/cust_gpio.dtsi:2294:	pinctrl-12 = <&gpio11>;
 	
 PINCTRL：
 	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/pinctrl-mtk-mt6735.h
@@ -479,6 +493,32 @@ PINCTRL：
 
     mt_set_gpio_dir(GPIO_SPEAKER_EN_PIN,GPIO_DIR_OUT); // output
     mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+	
+	
+	
+GPIO配置流程：
+	drivers/misc/mediatek/gpio/mt_gpio_core.c
+	
+DTS：
+		GPIO@0x10211000 {
+			compatible = "mediatek,GPIO";
+			reg = <0x10211000 0x1000>;
+		};
+	MISC设备节点：
+		mtgpio
+	GPIO PIN属性：可读，可写
+		mtgpio/pin
+	使用方法：
+		GPIOMSG("cat pin  #show all pin setting\n");
+		GPIOMSG("echo -wmode num x > pin #num:pin,x:the mode 0~7\n");
+		GPIOMSG("echo -wpsel num x > pin #x: 1,pull-up; 0,pull-down\n");
+		GPIOMSG("echo -wdout num x > pin #x: 1,high; 0, low\n");
+		GPIOMSG("echo -wpen num x > pin  #x: 1,pull enable; 0 pull disable\n");
+		GPIOMSG("echo -wies num x > pin  #x: 1,ies enable; 0 ies disable\n");
+		GPIOMSG("echo -wdir num x > pin  #x: 1, output; 0, input\n");
+		/*GPIOMSG("echo -wdinv num x > pin #x: 1, inversion enable; 0, disable\n");*/
+		GPIOMSG("echo -w=num x x x x x x > pin #set all property one time\n");
+		GPIOMSG("PIN: [MODE] [PSEL] [DIN] [DOUT] [PEN] [DIR] [IES]\n");
 ================================================================================
 Touch：
 	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C
@@ -641,6 +681,62 @@ Kernel：
 	drivers/misc/mediatek/wdt/mt6735/mtk_wdt.c
 	
 	
+================================================================================
+HDMI：DPI接口
+	DTS：
+		arch/arm64/boot/dts/mt6735.dtsi:1263:			compatible = "mediatek,HDMI";
+	驱动：
+		drivers/misc/mediatek/ext_disp/mt6735/mtk_ext_disp_mgr.c:349:	{.compatible = "mediatek,HDMI", },
+	
+	详解：
+		创建class及device
+		hdmitx/hdmitx
+		
+		作用：
+			1.	控制打开/关闭HDMI功能
+			2.	设置分辨率
+		
+	Kernel配置：
+		arch/arm64/configs/emx8816aa_debug_defconfig:1358:# CONFIG_MTK_HDMI_SUPPORT is not set
+		arch/arm64/configs/emx8816aa_debug_defconfig:1360:CONFIG_CUSTOM_KERNEL_HDMI=""
+		arch/arm64/configs/emx8816aa_defconfig:1355:# CONFIG_MTK_HDMI_SUPPORT is not set
+		arch/arm64/configs/emx8816aa_defconfig:1357:CONFIG_CUSTOM_KERNEL_HDMI=""
+
+		Sii8338、Sii8348、MT8193
+		根据硬件设计，修改IIC的channel，IIC的地址，配置GPIO，配置DPI，配置IIS
+	
+	Framework配置HDMI：
+		device/pvetec/emx8816aa/ProjectConfig.mk +386
+			emx8816aa/ProjectConfig.mk:386:MTK_HDMI_SUPPORT = no
+				385:MTK_HDMI_HDCP_SUPPORT = no
+				386:MTK_HDMI_SUPPORT = no
+				425:MTK_INTERNAL_HDMI_SUPPORT = no
+				496:MTK_MT8193_HDMI_SUPPORT = no
+
+	FB类型：
+		MTKFB_DISPIF_PRIMARY_LCD = 0,
+		MTKFB_DISPIF_HDMI = 1,
+	
+	显示类型：
+		typedef enum {
+			DISPIF_MODE_VIDEO = 0,
+			DISPIF_MODE_COMMAND
+		} MTKFB_DISPIF_MODE;
+	
+	显示格式：
+		DISPIF_FORMAT_RGB888
+	
+	流程：
+		drivers/misc/mediatek/ext_disp/mt6735/mtk_ext_disp_mgr.c:459:    hdmi_init();
+		drivers/misc/mediatek/ext_disp/mt6735/extd_hdmi_drv.c:1433:void hdmi_init()
+			hdmi_drv = (HDMI_DRIVER *)HDMI_GetDriver(); //获取HDMI芯片驱动，比如：Sii8338、Sii8348、MT8193
+			
+	现有代码的疑问：
+		1.	E01设备上使用的HDMI编解器芯片的型号？Sii8338、Sii8348、MT8193
+		2.	E01 HDMI使用的DPI接口，分辨率及帧率是多少？1920*720*60?
+================================================================================
+MTK Android Driver知识大全
+	https://www.cnblogs.com/biglucky/p/4413797.html
 
 ================================================================================
 ================================================================================
