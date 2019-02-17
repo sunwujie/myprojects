@@ -545,7 +545,10 @@ Touch：
                 compatible = "mediatek,MTKFB";
                 reg = <0x5F000000 0x1000000>;
         };
-
+	流程：
+		drivers/misc/mediatek/dispsys/mt6735/ddp_dsi.c:3847:DDP_MODULE_DRIVER ddp_driver_dsi0 =
+		drivers/misc/mediatek/dispsys/mt6735/ddp_info.c:169:extern DDP_MODULE_DRIVER ddp_driver_dsi0;
+		
 
 947芯片驱动：
        drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/cpt_clap070wp03xg_sn65dsi83_ti947.c
@@ -561,6 +564,11 @@ DSI：
 		drivers/misc/mediatek/dispsys/mt6735/ddp_dsi.c:2585:	lcm_drv->set_util_funcs(utils);
 DPI：
 		drivers/misc/mediatek/dispsys/mt6735/ddp_dpi.c:815:    lcm_drv->set_util_funcs(utils);
+		
+	DSI流程：
+		
+		misc/mediatek/dispsys/mt6735/ddp_info.c:216:    &ddp_driver_dsi0, //DISP_MODULE_DSI0
+		misc/mediatek/dispsys/mt6735/ddp_manager.c:206:    if(module == DISP_MODULE_DSI0)
 	   
 ================================================================================
 cmdline：
@@ -649,16 +657,65 @@ LK：
 		platform/mt6735/mt_i2c.c:846:int i2c_hw_init(void)
 	
 	Display：
+		https://blog.csdn.net/u012852605/article/details/84978677
+		
 		arch/arm/crt0.S:187:	bl		kmain
 		kernel/main.c:76:void kmain(void)
 		kernel/main.c:128:	thread_resume(thread_create("bootstrap2", &bootstrap2, NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE));
 		kernel/main.c:179:	platform_init();
 		platform/mt6735/platform.c:684:    mt_disp_init((void *)g_fb_base);
 		platform/mt6735/mt_disp_drv.c:235:        primary_display_init(NULL);
-		platform/mt6735/primary_display.c:347:	return disp_lcm_get_name(pgc->plcm);
-		platform/mt6735/disp_lcm.c:504:const char* disp_lcm_get_name(disp_lcm_handle *plcm)
-		platform/mt6735/include/platform/disp_lcm.h:32:const char* disp_lcm_get_name(disp_lcm_handle *plcm);
+		platform/mt6735/primary_display.c:820:		pgc->plcm = disp_lcm_probe(NULL, LCM_INTERFACE_NOTDEFINED);
+		platform/mt6735/disp_lcm.c:267:disp_lcm_handle* disp_lcm_probe(char* plcm_name, LCM_INTERFACE_ID lcm_id)
+			platform/mt6735/disp_lcm.c:130:	dpmgr_set_lcm_utils(handle, plcm->drv);
+			platform/mt6735/ddp_manager.c:781:            if((ddp_modules_driver[module_name]->set_lcm_utils!= 0)&&lcm_drv)
+			platform/mt6735/ddp_dsi.c:2600:int ddp_dsi_set_lcm_utils(DISP_MODULE_ENUM module, LCM_DRIVER *lcm_drv)
+			dev/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/cpt_clap070wp03xg_sn65dsi83_ti947.c:766:	.set_util_funcs = lcm_set_util_funcs
+		
+			platform/mt6735/disp_lcm.c:314:					handle = _display_interface_path_init(plcm);
+			platform/mt6735/disp_lcm.c:131:	dpmgr_path_init(handle, CMDQ_DISABLE);
+			platform/mt6735/ddp_manager.c:428:                 ddp_modules_driver[module_name]->init(module_name, cmdqHandle);
+			
+			platform/mt6735/disp_lcm.c:141:	dpmgr_path_config(handle, &data_config, CMDQ_DISABLE);
+			platform/mt6735/ddp_manager.c:581:                ddp_modules_driver[module_name]->config(module_name, config, cmdqHandle);
+			platform/mt6735/ddp_dsi.c:2249:int ddp_dsi_config(DISP_MODULE_ENUM module, disp_ddp_path_config *config, void *cmdq_handle)
+			platform/mt6735/ddp_dsi.c:2742:	.config		= ddp_dsi_config,
+		
+		到这里整个lk关于lcm驱动的加载过程就都介绍完了，做完上面介绍的流程之后，在跑完lk准备调到kernel之前，lk会通过fdt将加载到的lcm相关信息传给kernel，以便后续的操作
+		app/mt_boot/mt_boot.c:1305:.init = mt_boot_init,
+		app/mt_boot/mt_boot.c:1247:	boot_linux_from_storage();
+		app/mt_boot/mt_boot.c:731:void boot_linux(void *kernel, unsigned *tags,
+		app/mt_boot/mt_boot.c:230:int boot_linux_fdt(void *kernel, unsigned *tags,
+		
+		DDP_MODULE_DRIVER ddp_driver_dsi0 = 
+		{
+			.module 		= DISP_MODULE_DSI0,
+			.init			= ddp_dsi_init,
+			.deinit		= ddp_dsi_deinit,
+			.config		= ddp_dsi_config,
+			.trigger		= ddp_dsi_trigger,
+			.start		= ddp_dsi_start,
+			.stop		= ddp_dsi_stop,
+			.reset		= ddp_dsi_reset,
+			.power_on	= ddp_dsi_power_on,
+			.power_off	= ddp_dsi_power_off,
+			.is_idle		= ddp_dsi_is_idle,
+			.is_busy		= ddp_dsi_is_busy,
+			.dump_info	= ddp_dsi_dump,
+			.set_lcm_utils =  ddp_dsi_set_lcm_utils,
+			.polling_irq	 = ddp_dsi_polling_irq
+		};	
 
+		LCM_DRIVER cpt_clap070wp03xg_sn65dsi83_ti947_lcm_drv = 
+		{
+			.name		    = "cpt_clap070wp03xg_sn65dsi83_ti947",
+			.set_util_funcs = lcm_set_util_funcs,
+			.get_params     = lcm_get_params,
+			.init           = lcm_init,
+			.suspend        = lcm_suspend,
+			.resume         = lcm_resume,
+			.compare_id    = lcm_compare_id,
+		};
 		
 	Logo显示：
 		kernel/main.c:179:	platform_init();
@@ -675,6 +732,17 @@ LK：
 		platform/mt6735/disp_lcm.c:461:            ret = DSI_set_cmdq( _get_dst_module_by_lcm(plcm), NULL, data_array, 1, 1); // read maximum return size.
 		platform/mt6735/ddp_dsi.c:2029:	DISPCHECK("DSI_set_cmdq, module=%s, cmdq=0x%08x\n", module_name, cmdq);
 		
+		
+		
+	暂定：
+		drivers/misc/mediatek/cmdq/mt6735/cmdq_device.c:178:		cmdq_dev_alloc_disp_module_PA_by_name("mediatek,DISPSYS", (i-CMDQ_MODULE_INSTRUCTION_COUNT_DISP_OVL0),
+		drivers/misc/mediatek/dispsys/mt6735/ddp_drv.c:768:	{ .compatible = "mediatek,DISPSYS", },
+		arch/arm/boot/dts/mt6735.dtsi:1154:			compatible = "mediatek,DISPSYS";
+		
+		drivers/misc/mediatek/dispsys/mt6735/ddp_drv.c:677:	dsi_reg_va = dispsys_reg[DISP_REG_DSI0];
+		drivers/misc/mediatek/dispsys/mt6735/mt6735m/ddp_reg.h:1172:extern unsigned long dsi_reg_va;
+		drivers/misc/mediatek/dispsys/mt6735/ddp_irq.c:299:                DISP_CPU_REG_SET(dsi_reg_va + 0xC, ~reg_temp_val);
+
 ================================================================================
 Kernel：
 	WATCHDOG：
@@ -685,6 +753,7 @@ Kernel：
 HDMI：DPI接口
 	DTS：
 		arch/arm64/boot/dts/mt6735.dtsi:1263:			compatible = "mediatek,HDMI";
+	
 	驱动：
 		drivers/misc/mediatek/ext_disp/mt6735/mtk_ext_disp_mgr.c:349:	{.compatible = "mediatek,HDMI", },
 	
@@ -734,6 +803,14 @@ HDMI：DPI接口
 	现有代码的疑问：
 		1.	E01设备上使用的HDMI编解器芯片的型号？Sii8338、Sii8348、MT8193
 		2.	E01 HDMI使用的DPI接口，分辨率及帧率是多少？1920*720*60?
+		
+	DPI0：
+		mt6735.dtsi:1266:		DPI@0x14012000 {
+		mt6735.dtsi:1267:			compatible = "mediatek,DPI0";
+		
+		misc/mediatek/dispsys/mt6735/ddp_dpi.c:1054:        node = of_find_compatible_node(NULL, NULL, "mediatek,DPI0");
+
+		
 ================================================================================
 MTK Android Driver知识大全
 	https://www.cnblogs.com/biglucky/p/4413797.html
