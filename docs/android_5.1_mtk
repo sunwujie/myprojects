@@ -574,8 +574,41 @@ DPI：
 cmdline：
 	console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O bootopt=64S3,32N2,64N2 lcm=0-cpt_clap070wp03xg_sn65dsi83_ti947 fps=6377 vram=19726336 androidboot.selinux=permissive printk.disable_uart=0 ddebug_query="file *mediatek* +p ; file *gpu* =_" bootprof.pl_t=5123 bootprof.lk_t=1492 boot_reason=0 androidboot.serialno=0123456789ABCDEF androidboot.bootreason=power_key androidboot.devicetype=common androidboot.devicetype=commoncommon gpt=1
 
+	
+bootargs参数传递过程：
+	https://blog.csdn.net/eleven_xiy/article/details/72835181
+	
+	app/mt_boot/mt_boot.c:1183:void mt_boot_init(const struct app_descriptor *app)
+	app/mt_boot/mt_boot.c:1304:.init = mt_boot_init,
+	app/mt_boot/mt_boot.c:1246:	boot_linux_from_storage();
+	app/mt_boot/sys_commands.c:34:extern int boot_linux_from_storage(void);
+		strlen += sprintf(commanline, "%s %s", commanline, g_boot_hdr->cmdline);
+		strlen += sprintf(commanline, "%s lcm=%1d-%s", commanline, DISP_IsLcmFound(), mt_disp_get_lcm_id());
+		strlen += sprintf(commanline, "%s fps=%1d", commanline, mt_disp_get_lcd_time());
+		strlen += sprintf(commanline, "%s vram=%1d", commanline, DISP_GetVRamSize());
+		sprintf(commanline, "%s androidboot.selinux=permissive", commanline);
+	app/mt_boot/mt_boot.c:743:    boot_linux_fdt((void *)kernel, (unsigned *)tags,
+	//解析dtb，写入到DRAM指定区域；
+		ret = fdt_setprop_string(fdt, offset, "bootargs", cmdline);
+		//此时，LK将参数已bootargs的方式，传给Kernel，然后启动kernel。
+	
 ================================================================================
-Board boot：
+Kernel启动流程：
+
+	init/main.c:476:asmlinkage void __init start_kernel(void)  //Kernel的入口函数
+		parse_early_param(); //解析uboot参数
+		mm_init(); //内存初始化
+		console_init(); //控制台初始化
+		rest_init(); // 驱动相关启动
+			kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
+				kernel_init_freeable();
+					do_basic_setup();
+						do_initcalls(); //加载各level的驱动程序
+				run_init_process("/bin/init") //驱动程序加载完成后，调用init进程
+
+	
+	drivers/misc/mediatek/mach/mt6735/core.c:114:	.reserve	= mt_reserve,
+	drivers/misc/mediatek/mach/mt6735/mt_devs.c:2903:void mt_reserve(void)
 	drivers/misc/mediatek/mach/mt6735/mt_devs.c:2018:__init int mt_board_init(void)
 	drivers/misc/mediatek/mach/mt6735/include/mach/devs.h:22:extern int mt_board_init(void);
 	
@@ -625,6 +658,9 @@ BT565
 LK：
 	宏定义：
 	target/emx8816aa/rules.mk
+	
+	配置文件：
+		bootable/bootloader/project/emx8816aa.mk
 
 	启动流程：
 	kernel/main.c                      //LK入口函数：
@@ -656,6 +692,38 @@ LK：
 	I2C：
 		platform/mt6735/mt_i2c.c:846:int i2c_hw_init(void)
 	
+	启动模式（bootmode）：
+		/* boot type definitions */
+		typedef enum {
+			NORMAL_BOOT = 0,
+			META_BOOT = 1,
+			RECOVERY_BOOT = 2,
+			SW_REBOOT = 3,
+			FACTORY_BOOT = 4,
+			ADVMETA_BOOT = 5,
+			ATE_FACTORY_BOOT = 6,
+			ALARM_BOOT = 7,
+		#if defined(CONFIG_MTK_KERNEL_POWER_OFF_CHARGING)
+			KERNEL_POWER_OFF_CHARGING_BOOT = 8,
+			LOW_POWER_OFF_CHARGING_BOOT = 9,
+		#endif
+			UNKNOWN_BOOT
+		} BOOTMODE;
+		
+		流程：
+			kernel/main.c:179:	platform_init();
+			platform/mt6735/platform.c:735:    boot_mode_select();
+			platform/mt6735/boot_mode.c:81:void boot_mode_select(void)
+			
+			platform/mt6735/mt_rtc.c:221:bool Check_RTC_Recovery_Mode(void)
+			platform/mt6735/boot_mode.c:129:    if(Check_RTC_Recovery_Mode())   //判断是否进入Recovery模式
+			platform/mt6735/boot_mode.c:104:    if(Check_RTC_PDN1_bit13())      //判断是否进入fastboot模式
+	
+	Fastboot：
+		app/mt_boot/fastboot.c:405:int fastboot_init(void *base, unsigned size)
+		app/mt_boot/mt_boot.c:1297:	fastboot_init(target_get_scratch_address(), sz);
+		app/mt_boot/fastboot.c:468:    fastboot_register("oem reboot-recovery",cmd_oem_reboot2recovery, FALSE);
+		
 	Display：
 		https://blog.csdn.net/u012852605/article/details/84978677
 		
@@ -683,9 +751,22 @@ LK：
 		
 		到这里整个lk关于lcm驱动的加载过程就都介绍完了，做完上面介绍的流程之后，在跑完lk准备调到kernel之前，lk会通过fdt将加载到的lcm相关信息传给kernel，以便后续的操作
 		app/mt_boot/mt_boot.c:1305:.init = mt_boot_init,
-		app/mt_boot/mt_boot.c:1247:	boot_linux_from_storage();
+		app/mt_boot/mt_boot.c:1247:	boot_linux_from_storage();   // 此次，来判断启动是boot，还是recovery
 		app/mt_boot/mt_boot.c:731:void boot_linux(void *kernel, unsigned *tags,
 		app/mt_boot/mt_boot.c:230:int boot_linux_fdt(void *kernel, unsigned *tags,
+
+		
+		// LK传给kernel的显示参数：
+		app/mt_boot/mt_boot.c:523:    ptr = (char *)target_atag_videolfb((unsigned *)buf);
+		    
+			ptr = (char *)target_atag_videolfb((unsigned *)buf);
+			ret = fdt_setprop(fdt, offset, "atag,videolfb", buf, ptr - buf);
+			
+				[2760] videolfb - fb_base    = 0xbecf0000
+				[2760] videolfb - islcmfound = 0
+				[2880] videolfb - fps        = 6378
+				[2880] videolfb - vram       = 19726336
+				[2880] videolfb - lcmname    = cpt_clap070wp03xg_sn65dsi83_ti947
 		
 		DDP_MODULE_DRIVER ddp_driver_dsi0 = 
 		{
@@ -748,7 +829,8 @@ Kernel：
 	WATCHDOG：
 	drivers/misc/mediatek/wdt/mt6735/mtk_wdt.c
 	
-	
+	Camera流程：
+		https://www.cnblogs.com/reality-soul/p/4668532.html
 ================================================================================
 HDMI：DPI接口
 	DTS：

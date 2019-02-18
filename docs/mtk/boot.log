@@ -1235,7 +1235,8 @@ no mkimg header in ramdisk image
 [2900] DRAM Rank :2
 [2900] DRAM Rank[0] Start = 0x40000000, Size = 0x40000000
 [2900] DRAM Rank[1] Start = 0x80000000, Size = 0x3ffc0000
-[2900] cmdline: console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O bootopt=64S3,32N2,64N2 lcm=0-cpt_clap070wp03xg_sn65dsi83_ti947 fps=6378 vram=19726336 androidboot.selinux=permissive printk.[2900] lk boot time = 1489 ms
+[2900] cmdline: console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O bootopt=64S3,32N2,64N2 lcm=0-cpt_clap070wp03xg_sn65dsi83_ti947 fps=6378 vram=19726336 androidboot.selinux=permissive printk.
+[2900] lk boot time = 1489 ms
 [2900] lk boot mode = 0
 [2900] lk boot reason = power_key
 [2900] lk finished --> jump to linux kernel 64Bit
