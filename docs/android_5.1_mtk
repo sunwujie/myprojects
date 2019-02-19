@@ -391,6 +391,8 @@ Audio：
         };
 	};
 
+	代码：
+		sound/soc/mediatek/mt_soc_audio_v3
 ================================================================================
 FB：
     MTKFB@5e200000 {
@@ -831,6 +833,12 @@ Kernel：
 	
 	Camera流程：
 		https://www.cnblogs.com/reality-soul/p/4668532.html
+		
+		
+	PWM：
+		drivers/misc/mediatek/dispsys/mt6735/ddp_pwm.c:333:DDP_MODULE_DRIVER ddp_driver_pwm =
+		drivers/misc/mediatek/dispsys/mt6735/ddp_info.c:199:extern DDP_MODULE_DRIVER ddp_driver_pwm;
+		drivers/misc/mediatek/dispsys/mt6735/ddp_info.c:214:    &ddp_driver_pwm, //DISP_MODULE_PWM0 
 ================================================================================
 HDMI：DPI接口
 	DTS：
@@ -896,7 +904,6 @@ HDMI：DPI接口
 ================================================================================
 MTK Android Driver知识大全
 	https://www.cnblogs.com/biglucky/p/4413797.html
-
 ================================================================================
 ================================================================================
 ================================================================================
