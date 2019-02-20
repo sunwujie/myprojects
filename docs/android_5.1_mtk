@@ -905,6 +905,43 @@ HDMI：DPI接口
 MTK Android Driver知识大全
 	https://www.cnblogs.com/biglucky/p/4413797.html
 ================================================================================
+系统启动时间统计：
+	/proc/bootprof
+	130|root@emx8816aa:/proc # cat bootprof
+----------------------------------------
+0           BOOT PROF (unit:msec)
+----------------------------------------
+      3113        : preloader
+      1341        : lk
+       196        : lk->Kernel
+----------------------------------------
+      4472.046384 : Kernel_init_done
+      4909.249845 : INIT: on init start
+      4925.795153 : INIT:Mount_START
+      5561.890076 : INIT:Mount_END
+      5660.336615 : post-fs-data: on modem start
+      7410.465999 : BOOT_Animation:START
+      8094.765153 : Zygote:Preload Start
+      8128.838922 : Zygote:Preload Start
+      9180.035230 : Zygote:Preload 343 obtain resources in 544ms
+      9191.100307 : Zygote:Preload 41 resources in 10ms
+      9205.593538 : Zygote:Preload 343 obtain resources in 558ms
+      9216.360769 : Zygote:Preload 41 resources in 9ms
+      9684.811230 : Zygote:Preload 3005 classes in 1586ms
+      9724.175846 : Zygote:Preload 3005 classes in 1519ms
+      9765.749538 : Zygote:Preload End
+      9776.111999 : Zygote:Preload End
+     10265.456384 : Android:PackageManagerService_Start
+     10354.801999 : Android:PMS_scan_START
+     10539.530538 : Android:PMS_scan_data_done:/system/framework
+     11133.292769 : Android:PMS_scan_data_done:/system/priv-app
+     12099.090384 : Android:PMS_scan_data_done:/system/app
+     12131.278461 : Android:PMS_scan_data_done:/system/plugin
+     12135.267307 : Android:PMS_scan_data_done:/data/app
+     12141.271307 : Android:PMS_scan_END
+     12202.939846 : Android:PMS_READY
+     16749.123154 : BOOT_Animation:END
+----------------------------------------
 ================================================================================
 ================================================================================
 ================================================================================
