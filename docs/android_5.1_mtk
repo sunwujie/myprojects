@@ -454,6 +454,9 @@ GPIO：
 	
 	drivers/misc/mediatek/gpio/mt6735/mt_gpio_debug.c
 	
+	./include/mach/mt_gpio_core.h
+	./drivers/misc/mediatek/gpio/mt_gpio_core.c
+	
 DTS：
 	drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/cust_gpio.dtsi:2294:	pinctrl-12 = <&gpio11>;
 	
@@ -511,6 +514,7 @@ DTS：
 	GPIO PIN属性：可读，可写
 		mtgpio/pin
 	使用方法：
+		方法1：
 		GPIOMSG("cat pin  #show all pin setting\n");
 		GPIOMSG("echo -wmode num x > pin #num:pin,x:the mode 0~7\n");
 		GPIOMSG("echo -wpsel num x > pin #x: 1,pull-up; 0,pull-down\n");
@@ -521,6 +525,34 @@ DTS：
 		/*GPIOMSG("echo -wdinv num x > pin #x: 1, inversion enable; 0, disable\n");*/
 		GPIOMSG("echo -w=num x x x x x x > pin #set all property one time\n");
 		GPIOMSG("PIN: [MODE] [PSEL] [DIN] [DOUT] [PEN] [DIR] [IES]\n");
+		
+		方法2：
+		oned_gpio_fd =open("/dev/mtgpio", O_RDWR);  
+		if(oned_gpio_fd == -1)  
+		{  
+		LOGD("1DPower up Fail.........");  
+		return -1;  
+		}  
+		   
+		//0x15为设置pin引脚为高电平命令，85表示pin引脚  
+		ioctl(oned_gpio_fd, 0x15,85);  
+		   
+		ioctl(oned_gpio_fd, 0x15,154);  
+		ioctl(oned_gpio_fd, 0x15,150);  
+		ioctl(oned_gpio_fd, 0x15,69);  
+		   
+		ioctl(oned_gpio_fd, 0x15,72);  
+		//0x14为设置pin引脚为低电平的命令  
+		ioctl(oned_gpio_fd, 0x14,78);  
+		usleep(1000);  
+		
+	shell下调试GPIO
+		//可以cat查看pin脚状态，分析gpio是否与预期值一致
+		cat /sys/devices/virtual/misc/mtgpio/pin
+	
+	使用方式：
+		https://blog.csdn.net/richu123/article/details/51212302
+	
 ================================================================================
 Touch：
 	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C
@@ -735,7 +767,7 @@ LK：
 		kernel/main.c:179:	platform_init();
 		platform/mt6735/platform.c:684:    mt_disp_init((void *)g_fb_base);
 		platform/mt6735/mt_disp_drv.c:235:        primary_display_init(NULL);
-		platform/mt6735/primary_display.c:820:		pgc->plcm = disp_lcm_probe(NULL, LCM_INTERFACE_NOTDEFINED);
+		platform/mt6735/primary_display.c:580:		pgc->plcm = disp_lcm_probe(NULL, LCM_INTERFACE_NOTDEFINED);
 		platform/mt6735/disp_lcm.c:267:disp_lcm_handle* disp_lcm_probe(char* plcm_name, LCM_INTERFACE_ID lcm_id)
 			platform/mt6735/disp_lcm.c:130:	dpmgr_set_lcm_utils(handle, plcm->drv);
 			platform/mt6735/ddp_manager.c:781:            if((ddp_modules_driver[module_name]->set_lcm_utils!= 0)&&lcm_drv)
@@ -839,6 +871,44 @@ Kernel：
 		drivers/misc/mediatek/dispsys/mt6735/ddp_pwm.c:333:DDP_MODULE_DRIVER ddp_driver_pwm =
 		drivers/misc/mediatek/dispsys/mt6735/ddp_info.c:199:extern DDP_MODULE_DRIVER ddp_driver_pwm;
 		drivers/misc/mediatek/dispsys/mt6735/ddp_info.c:214:    &ddp_driver_pwm, //DISP_MODULE_PWM0 
+		
+		
+		
+	PWM：
+		mediatek/videox/mt6735/primary_display.c:5135:int primary_display_init(char *lcm_name, unsigned int lcm_fps)
+		mediatek/videox/mt6735/primary_display.c:5150:	dpmgr_init();
+		mediatek/dispsys/mt6735/ddp_debug.c:957:void ddp_debug_init(void)
+		mediatek/dispsys/mt6735/ddp_manager.c:2037:    ddp_debug_init();
+		drivers/misc/mediatek/leds/leds_drv.c:497:		INIT_WORK(&g_leds_data[i]->work, mt_mt65xx_led_work);
+		drivers/misc/mediatek/leds/mt6735/leds_hal.h:29:extern void mt_mt65xx_led_work(struct work_struct *work);
+		drivers/misc/mediatek/leds/mt6735/leds.c:712:void mt_mt65xx_led_work(struct work_struct *work)
+		
+		
+		drivers/misc/mediatek/leds/leds_drv.c:170:	mt_led_set_pwm(pwm_num, led);
+		drivers/misc/mediatek/leds/mt6735/leds_hal.h:24:extern int mt_led_set_pwm(int pwm_num, struct nled_setting* led);
+		drivers/misc/mediatek/leds/mt6735/leds.c:177:int mt_led_set_pwm(int pwm_num, struct nled_setting* led)
+		
+	显示debug：
+		echo dbg_log:1 > /d/dispsys
+		/sys/kernel/debug/dispsys
+			root@emx8816aa:/sys/kernel/debug # cat dispsys
+			USAGE:
+				   echo [ACTION]>/d/dispsys
+			ACTION:
+				   regr:addr
+						  :regr:0xf400c000
+				   regw:addr,value          :regw:0xf400c000,0x1
+				   dbg_log:0|1|2            :0 off, 1 dbg, 2 all
+				   irq_log:0|1              :0 off, !0 on
+				   met_on:[0|1],[0|1],[0|1] :fist[0|1]on|off,other [0|1]direct|decouple
+				   backlight:level
+				   dump_aal:arg
+				   mmp
+				   dump_reg:moduleID
+				   dump_path:mutexID
+				   dpfd_ut1:channel
+		
+		/sys/kernel/debug/disp/dump
 ================================================================================
 HDMI：DPI接口
 	DTS：
