@@ -391,8 +391,37 @@ Audio：
         };
 	};
 
+	
+	TEF6686_FM_PCM {
+		compatible = "tef6686_fm_pcm";
+	};
+	
+	
 	代码：
 		sound/soc/mediatek/mt_soc_audio_v3
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c
+			注册声卡：
+				out：数据输出 	
+				Debugfs:
+				/sys/kernel/debug/mtksocaudio
+				
+				in ：模拟输入
+				Debugfs:
+				/sys/kernel/debug/mtksocanaaudio
+				
+				static char ParSetkeyAfe[] = "Setafereg";
+				static char ParSetkeyAna[] = "Setanareg";
+				static char ParSetkeyCfg[] = "Setcfgreg";
+				static char PareGetkeyAfe[] = "Getafereg";
+				static char PareGetkeyAna[] = "Getanareg";
+		sound/soc/mediatek/mt_soc_audio_v3
+		sound/soc/mediatek/mt_soc_audio_v3
+		sound/soc/mediatek/mt_soc_audio_v3
+		sound/soc/mediatek/mt_soc_audio_v3
+		sound/soc/mediatek/mt_soc_audio_v3
+		
+	采样率：
+		44k
 ================================================================================
 FB：
     MTKFB@5e200000 {
@@ -1013,7 +1042,31 @@ MTK Android Driver知识大全
      16749.123154 : BOOT_Animation:END
 ----------------------------------------
 ================================================================================
+MTK Camera:
+	MTK Camera 从底层到应用层一网打尽
+	https://www.jianshu.com/p/5f538820e370?from=timeline&isappinstalled=0
+
+
 ================================================================================
+升级：
+	1.升级程序将升级包数据copy到cache分区后，使用set_bootloader_message(&boot)函数，将bootmode数据存储在misc（para）分区，设置启动模式。
+	2.该bootmode数据存储在misc（para）分区
+	3.LK里调用recovery_check_command_trigger函数，确认是否进入recovery模式
+	4.lk将启动recovery分区的boot镜像，进入升级模式
+	
+	注：
+	uboot中会先后检查三种方式进入recovery是否成立：
+	第一种是kernel直接写一个寄存器来标记下次启动将进入recovery模式；
+	第二种是快捷键：powerkey+downVOL；
+	第三中就是上层应用发送下来的回复出厂设置的命令，这个命令在restart之前kernel会往MISC分区中写command(boot-recovery)。
+	
+	代码流程：
+	bootable/recovery
+		bootloader.cpp:77:int set_bootloader_message(const struct bootloader_message *in) {
+	
+	bootable/bootable/lk
+		platform/mt6735/recovery.c:93:BOOL recovery_check_command_trigger(void)
+	
 ================================================================================
 ================================================================================
 ================================================================================
