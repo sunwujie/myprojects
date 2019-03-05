@@ -155,7 +155,8 @@ PRELOADER:
 Audio Hal:
 	vendor/mediatek/proprietary/platform/mt6735/hardware/audio
 
-
+编译连接参数：
+	TARGET_GLOBAL_CFLAGS：很重要
 ================================================================================
 重要的镜像文件：
 
@@ -368,6 +369,7 @@ MTK启动模式：
 
 ================================================================================
 Audio：
+	// I2S1
     MT_SOC_DL1_PCM@0x11220000 {
             compatible = "mediatek,mt_soc_pcm_dl1";
             reg = <0x11220000 0x1000>;
@@ -398,8 +400,46 @@ Audio：
 	
 	
 	代码：
+	
+		dai_list：保存系统中注册的所有dai（cpu dai，codec dai）
+				注册方法：
+					snd_soc_register_component  -> snd_soc_register_dais -> snd_soc_register_dai
+					snd_soc_register_codec -> snd_soc_register_dais -> snd_soc_register_dai
+					
+		codec_list:保存系统中注册的所有codec
+				注册方法：
+					snd_soc_register_codec
+		platform_list：保存系统中注册的所有platform
+				注册方法：
+					snd_soc_register_platform
+		
+		audio系统中的platform如何理解？
+		
 		sound/soc/mediatek/mt_soc_audio_v3
 		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c
+			注册platpform device（name=“soc-audio”）
+		sound/soc/soc-core.c
+			注册platform driver（name="soc-audio"）
+			调用probe函数
+				snd_soc_register_card(snd_soc_card card) //snd_soc_card card在mt_soc_machine.c里定义
+					根据dai-link的数量申请相同数量的rtd
+					card->rtd = devm_kzalloc(card->dev,sizeof(struct snd_soc_pcm_runtime) *(card->num_links + card->num_aux_devs)
+					实例化声卡：
+					snd_soc_instantiate_card(card)
+						绑定每个dai-link中的dai：也就是将系统中注册的cpu-dai，codec及codec-dai，platform均保存到相应的rtd中
+						soc_bind_dai_link(card, i)
+						check每个dai-link的aux设备
+						soc_check_aux_dev(card, i)
+						initialize the register cache for each available codec：
+						snd_soc_init_codec_cache(codec, compress_type)  ？？？不太理解，
+						create and initialize a soundcard structure：
+						ret = snd_card_create(SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,card->owner, 0, &card->snd_card);
+							创建control device
+							snd_ctl_create(card) ：
+								snd_device_new
+							创建infor
+							snd_info_card_create(card)
+							
 			注册声卡：
 				out：数据输出 	
 				Debugfs:
@@ -421,7 +461,36 @@ Audio：
 		sound/soc/mediatek/mt_soc_audio_v3
 		
 	采样率：
-		44k
+		48k
+		
+		
+	I2S:
+	I2S为三线总线，3个信号分别为：
+		①串行时钟SCK，也叫位时钟（BCK）。即每发送1位数字音频数据，SCK上都有1个脉冲。SCK的频率=2×采样频率×采样位数。
+		在数据传输过程中，I2S总线的发送器和接收器都可以作为系统的主机来提供系统的时钟频率。
+		② 帧时钟WS，即命令（声道）选择，用于切换左右声道的数据。WS的频率等于采样频率，由系统主机提供。WS为“1”表示传输的是左声道的数据，WS为“0”表示传输的是右声道的数据。
+		③ 串行数据信号SD，用于传输二进制补码表示的音频数据。
+		I2S格式的信号无论有多少位有效数据，数据位的最高位（MSB）总是被最先传输，1次能够发送的数据决定于I2S格式的有效位数。
+		随着技术的发展，在统一的I2S接口下出现了多种不同的数据格式。根据SD信号相对于SCK和WS位置的不同，分为左对齐和右对齐2种格式
+		在上面2种数据传输格式中，当WS为“1”时传输的是左声道的数据，当WS为“0”时传输的是右声道的数据。为了保证数字音频信号的正确传输，发送端和接收端必须采用相同的数据格式。
+
+		介绍：
+		https://blog.csdn.net/u010783226/article/details/82708282
+		
+	Android部分path设置：
+		device/mediatek/mt6735/audio_device.xml
+		
+		<path name="ext_speaker_output" value="turnon">                 
+		<kctl name="Ext_Speaker_Amp_Switch" value="On" />
+		</path>
+		
+		<path name="speaker_output" value="turnon">
+			<kctl name="Speaker_Amp_Switch" value="On" />
+		</path>
+		<path name="speaker_output" value="turnoff">
+			<kctl name="Speaker_Amp_Switch" value="Off" />
+		</path>
+
 ================================================================================
 FB：
     MTKFB@5e200000 {
