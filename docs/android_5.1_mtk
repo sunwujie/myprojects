@@ -394,9 +394,27 @@ Audio：
 	};
 
 	
-	TEF6686_FM_PCM {
-		compatible = "tef6686_fm_pcm";
-	};
+			MT_SOC_DL1_PCM@0x11220000 {
+			compatible = "mediatek,mt_soc_pcm_dl1";
+			reg = <0x11220000 0x1000>;
+			interrupts = <0 144 0x8>;
+			audclk-gpio = <143 0>;
+			audmiso-gpio = <144 0>;
+			audmosi-gpio = <145 0>;
+			vowclk-gpio = <148 0>;
+			extspkamp-gpio = <129 0>;
+			extspkamp_2-gpio = <128 0>;
+			rcvspkswitch-gpio = <120 0>;						
+			i2s1clk-gpio = <135 0>;
+			i2s1dat-gpio = <137 0>;
+			i2s1mclk-gpio = <134 0>;
+			i2s1ws-gpio = <136 0>;
+		};
+	
+		FM platform：
+		TEF6686_FM_PCM {
+			compatible = "tef6686_fm_pcm";
+		};
 	
 	
 	代码：
@@ -416,6 +434,8 @@ Audio：
 		audio系统中的platform如何理解？
 		
 		sound/soc/mediatek/mt_soc_audio_v3
+		
+		Machine:
 		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c
 			注册platpform device（name=“soc-audio”）
 		sound/soc/soc-core.c
@@ -460,6 +480,19 @@ Audio：
 		sound/soc/mediatek/mt_soc_audio_v3
 		sound/soc/mediatek/mt_soc_audio_v3
 		
+		
+		
+		sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h
+		
+		
+		Capture:
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_tdm_capture.c
+		
+		Platform:
+		
+		Codec:
+		
+		
 	采样率：
 		48k
 		
@@ -490,7 +523,113 @@ Audio：
 		<path name="speaker_output" value="turnoff">
 			<kctl name="Speaker_Amp_Switch" value="Off" />
 		</path>
-
+	
+	
+	张瑞铮：
+		audio 播放：
+		codec做从设备：
+		soc做主设备：（提供clk，函数调用：AudDrv_Clk_On()）
+		pcmC0D8p        I2S0DL1_PLayback
+				{
+					.name = "I2S0DL1OUTPUT",
+					.stream_name = MT_SOC_I2SDL1_STREAM_NAME,
+					.cpu_dai_name   = MT_SOC_I2S0DL1_NAME,
+					.platform_name  = MT_SOC_I2S0DL1_PCM,
+					.codec_dai_name = MT_SOC_CODEC_I2S0TXDAI_NAME,
+					.codec_name = MT_SOC_CODEC_NAME,
+					.init = mt_soc_audio_init,
+					.ops = &mt_machine_audio_ops,
+				},
+				
+		stream_name：
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_dai_stub.c:330:            .stream_name = MT_SOC_I2SDL1_STREAM_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:719:        .stream_name = MT_SOC_I2SDL1_STREAM_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_63xx.c:1102:            .stream_name = MT_SOC_I2SDL1_STREAM_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:316:#define MT_SOC_I2SDL1_STREAM_NAME "I2S0DL1_PLayback"
+		
+		cpu_dai_name：
+		DTS：
+			MT_SOC_DAI_NAME@0x11220000 {
+				compatible = "mediatek,mt_soc_dai_stub";
+			};
+		
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_dai_stub.c:338:        .name = MT_SOC_I2S0DL1_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:720:        .cpu_dai_name   = MT_SOC_I2S0DL1_NAME,
+		
+		
+		platform_name：（mt-soc-i2s0dl1-pcm）
+		DTS：
+			MT_SOC_I2S0DL1_PCM@0x11220000 {
+				compatible = "mediatek,mt_soc_pcm_dl1_i2s0Dl1";
+			};
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_pcm_dl1_i2s0Dl1.c:749:        dev_set_name(&pdev->dev, "%s", MT_SOC_I2S0DL1_PCM);
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_pcm_dl1_i2s0Dl1.c:797:        .name = MT_SOC_I2S0DL1_PCM,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_pcm_dl1_i2s0Dl1.c:816:    soc_mtkI2S0dl1_dev = platform_device_alloc(MT_SOC_I2S0DL1_PCM, -1);
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:721:        .platform_name  = MT_SOC_I2S0DL1_PCM,
+		sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:243:#define MT_SOC_I2S0DL1_PCM  "mt-soc-i2s0dl1-pcm"
+		arch/arm64/boot/dts/mt6735.dtsi:1037:		MT_SOC_I2S0DL1_PCM@0x11220000 {
+		
+		代码解析：
+			支持的采样率：constraints_sample_rates
+			Open函数：
+				提供CLK：
+				AudDrv_Clk_On()
+			Close函数：
+				mtk_pcm_I2S0dl1_close
+				1.	stop DAC output
+				2.	stop I2S output
+				
+				I2S格式：I2S，位数为32位
+				Format：32
+				
+			Prepare：
+				
+				
+		codec_dai_name：（mt-soc-codec-I2s0tx-dai）
+		
+		DTS：
+				MT_SOC_CODEC_NAME@0x11220000 {
+					compatible = "mediatek,mt_soc_codec_63xx";
+				};
+				//内部DSP：PMIC+audio codec：芯片型号：MT6328V
+		
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:722:        .codec_dai_name = MT_SOC_CODEC_I2S0TXDAI_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_63xx.c:1099:        .name = MT_SOC_CODEC_I2S0TXDAI_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:272:#define MT_SOC_CODEC_I2S0TXDAI_NAME "mt-soc-codec-I2s0tx-dai"
+		
+		
+		codec_name： （mt-soc-codec）
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:663:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:683:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:703:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:723:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:793:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:823:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:853:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:863:        .codec_name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_63xx.c:4975:        dev_set_name(&pdev->dev, "%s", MT_SOC_CODEC_NAME);
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_63xx.c:5003:        .name = MT_SOC_CODEC_NAME,
+		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_63xx.c:5022:    soc_mtk_codec6331_dev = platform_device_alloc(MT_SOC_CODEC_NAME, -1);
+		sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:289:#define MT_SOC_CODEC_NAME "mt-soc-codec"
+		arch/arm64/boot/dts/mt6735.dtsi:1093:		MT_SOC_CODEC_NAME@0x11220000 {
+		
+		
+		
+		mic：
+		pcmC0D1c               MultiMedia1_Capture
+			    {
+					.name = "MultiMedia1",
+					.stream_name = MT_SOC_DL1_STREAM_NAME,
+					.cpu_dai_name   = MT_SOC_DL1DAI_NAME,
+					.platform_name  = MT_SOC_DL1_PCM,
+					.codec_dai_name = "ak7738-aif2",
+					.codec_name = "ak7738.3-0018",
+					.init = mt_soc_audio_init,
+					.ops = &mt_machine_audio_ops,
+				},
+		
+			
+		参考音：                     DL1_AWB_Record
 ================================================================================
 FB：
     MTKFB@5e200000 {
@@ -650,7 +789,26 @@ DTS：
 	
 	使用方式：
 		https://blog.csdn.net/richu123/article/details/51212302
-	
+		
+		
+	Drvgen:
+	端子定义修改的效果：
+		drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/cust_gpio.dtsi
+		修改gpio的dir：由out->in
+		        gpio2: gpio@2 {
+                pins_cmd_dat {
+                        pins = <PINMUX_GPIO2__FUNC_GPIO2>;
+                        slew-rate = <1>;                   //表示GPIO的方向为IN
+                        slew-rate = <0>;                   //表示GPIO的方向为OUT
+						bias-enable;                      //表示关闭GPIO的上拉使能
+                        bias-disable;                      //表示关闭GPIO的上拉使能
+                        bias-pull-down = <00>;             //表示设置GPIO为下拉
+						bias-pull-down = <11>;             //表示设置GPIO为上拉
+                        output-low;						   //表示GPIO的方向为OUT，且输出低电平
+						output-high;                       //表示GPIO的方向为OUT，且输出高电平
+						
+		-#define GPIO_CTP_EINT_PIN_M_EINT   GPIO_MODE_00
+		如果设置为中断模式的话，将定义上述宏
 ================================================================================
 Touch：
 	./drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C
@@ -666,6 +824,17 @@ Touch：
               drivers/input/touchscreen/mediatek/tpd_setting.c
        驱动：
               drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C/tp_ti947_driver.c
+	
+	
+	//将该GPIO设置为中断
+	mt_set_gpio_mode(11, GPIO_CTP_EINT_PIN_M_EINT);
+	//设置为输入
+	mt_set_gpio_dir(11, GPIO_DIR_IN);
+	//设置为无上拉
+	mt_set_gpio_pull_enable(11, GPIO_PULL_DISABLE);
+
+	//注册中断：
+    mt_eint_registration(11, EINTF_TRIGGER_FALLING, tpd_eint_interrupt_handler, 0);// disable auto-unmask
 	
 ================================================================================
 显示（Framebuffer）：

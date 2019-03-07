@@ -1235,8 +1235,7 @@ no mkimg header in ramdisk image
 [2900] DRAM Rank :2
 [2900] DRAM Rank[0] Start = 0x40000000, Size = 0x40000000
 [2900] DRAM Rank[1] Start = 0x80000000, Size = 0x3ffc0000
-[2900] cmdline: console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O bootopt=64S3,32N2,64N2 lcm=0-cpt_clap070wp03xg_sn65dsi83_ti947 fps=6378 vram=19726336 androidboot.selinux=permissive printk.
-[2900] lk boot time = 1489 ms
+[2900] cmdline: console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O bootopt=64S3,32N2,64N2 lcm=0-cpt_clap070wp03xg_sn65dsi83_ti947 fps=6378 vram=19726336 androidboot.selinux=permissive printk.[2900] lk boot time = 1489 ms
 [2900] lk boot mode = 0
 [2900] lk boot reason = power_key
 [2900] lk finished --> jump to linux kernel 64Bit
@@ -9421,3 +9420,48 @@ shell@emx8816aa:/ $ [   10.214889]<1>.(1)[240:mtk_wmtd][WMT-IC][I]mtk_wcn_soc_sw
 [   46.319613]<3>.(3)[862:Binder_3]update time is is 46289721
 [   46.322092]<3>.(3)[862:Binder_3]Current mtsched enabled = 0
 [   46.322805]<3>.(3)[862:Binder_3]<< printk console disable >>
+
+
+
+
+
+插入U盘：
+root@emx8816aa:/ # [   73.498118]<0>-(0)[0:swapper/0][MUSB]musb_host_rx 1903: RX end 2 STALL
+[   73.499714]<0>-(0)[1948:usb-storage][MUSB]musb_host_rx 1903: RX end 2 STALL
+[   73.504224]<0>-(0)[1948:usb-storage][MUSB]musb_host_rx 1903: RX end 2 STALL
+[   73.506364]<0>-(0)[1948:usb-storage][MUSB]musb_host_rx 1903: RX end 2 STALL
+[   73.507786]<0>-(0)[1948:usb-storage][MUSB]musb_host_rx 1903: RX end 2 STALL
+[   73.548118]<0>-(0)[1948:usb-storage][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   73.555213]<0>-(0)[1949:MountService#Vo][MUSB]musb_host_rx 1903: RX end 2 STALL
+[   73.556798]<0>-(0)[1948:usb-storage][MUSB]musb_host_rx 1903: RX end 2 STALL
+[   73.704129]<0>-(0)[272:main][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   73.717825]<0>-(0)[272:main][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   74.018665]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   74.201080]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   74.312306]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   74.356449]<0>-(0)[750:system_server][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   74.902208]<0>-(0)[1990:sdcard][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.108744]<0>-(0)[227:surfaceflinger][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.171862]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.251673]<0>-(0)[2022:Scan-thread#1][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.257510]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.263496]<0>-(0)[2023:Scan-thread#2][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.271892]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.284142]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.387725]<0>-(0)[1996:sdcard][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.391618]<0>-(0)[1996:sdcard][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.396231]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.446522]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.473517]<0>-(0)[1995:sdcard][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.544508]<0>-(0)[1995:sdcard][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.565560]<0>-(0)[1948:usb-storage][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.576874]<0>-(0)[1948:usb-storage][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.584735]<0>-(0)[1948:usb-storage][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.597036]<0>-(0)[1996:sdcard][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.625258]<0>-(0)[1995:sdcard][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   75.678406]<0>-(0)[2022:Scan-thread#1][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   76.141152]<0>-(0)[2022:Scan-thread#1][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   76.164613]<0>-(0)[1128:GCDaemon][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   76.172460]<0>-(0)[1948:usb-storage][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+[   76.377590]<0>-(0)[0:swapper/0][MUSB]musb_host_tx 1570: hw_ep:1, QH NULL
+
