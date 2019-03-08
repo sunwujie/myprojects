@@ -525,8 +525,113 @@ Audio：
 		</path>
 	
 	
-	张瑞铮：
-		audio 播放：
+----------------------------------------------------------------------------------------------------------------------------	
+	
+	代码解析：
+	Ecarx主声道：
+		DTS节点：
+			    {
+					.name = "MultiMedia1",
+					.stream_name = MT_SOC_DL1_STREAM_NAME,
+					.cpu_dai_name   = MT_SOC_DL1DAI_NAME,
+					.platform_name  = MT_SOC_DL1_PCM,
+					.codec_dai_name = "ak7738-aif2",
+					.codec_name = "ak7738.3-0018",
+					.init = mt_soc_audio_init,
+					.ops = &mt_machine_audio_ops,
+				},
+		代码流程：
+			stream_name：
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_dai_stub.c:102:            .stream_name = MT_SOC_DL1_STREAM_NAME,
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_dummy.c:113:            .stream_name = MT_SOC_DL1_STREAM_NAME,
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:639:        .stream_name = MT_SOC_DL1_STREAM_NAME,
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_63xx.c:1061:            .stream_name = MT_SOC_DL1_STREAM_NAME,
+				sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:305:#define MT_SOC_DL1_STREAM_NAME "MultiMedia1_PLayback"
+			
+			cpu_dai_name：
+			
+					MT_SOC_DAI_NAME@0x11220000 {
+						compatible = "mediatek,mt_soc_dai_stub";
+					};
+			
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_dai_stub.c:110:        .name = MT_SOC_DL1DAI_NAME,
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:640:        .cpu_dai_name   = MT_SOC_DL1DAI_NAME,
+				sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:195:#define MT_SOC_DL1DAI_NAME "mt-soc-dl1dai-driver"
+			
+			platform_name:
+			
+						MT_SOC_DL1_PCM@0x11220000 {
+							compatible = "mediatek,mt_soc_pcm_dl1";
+							reg = <0x11220000 0x1000>;
+							interrupts = <0 144 0x8>;
+							audclk-gpio = <143 0>;
+							audmiso-gpio = <144 0>;
+							audmosi-gpio = <145 0>;
+							vowclk-gpio = <148 0>;
+							extspkamp-gpio = <117 0>;
+							i2s1clk-gpio = <80 0>;
+							i2s1dat-gpio = <78 0>;
+							i2s1mclk-gpio = <9 0>;
+							i2s1ws-gpio = <79 0>;
+						};
+
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_pcm_dl1.c:703:        dev_set_name(&pdev->dev, "%s", MT_SOC_DL1_PCM);
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_pcm_dl1.c:1111:        .name = MT_SOC_DL1_PCM,
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_pcm_dl1.c:1134:    soc_mtkafe_dev = platform_device_alloc(MT_SOC_DL1_PCM, -1);
+				sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:641:        .platform_name  = MT_SOC_DL1_PCM,
+				sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:228:#define MT_SOC_DL1_PCM   "mt-soc-dl1-pcm"
+			codec_dai_name:
+			codec_name：
+		
+	Ecarx MIC1：
+		DTS节点：
+		代码流程：
+			platform_name:
+				DTS：
+					MT_SOC_UL1_PCM@0x11220000 {
+						compatible = "mediatek,mt_soc_pcm_capture";
+					};
+				
+			cpu_dai_name：
+			codec_dai_name:
+			codec_name：
+			
+			Soc_Aud_I2S_SRC_MASTER_MODE = 0,
+			Soc_Aud_I2S_SRC_SLAVE_MODE = 1
+			
+			AudDrv_Clk_On：
+			        if (enable_clock(MT_CG_INFRA_AUDIO, "AUDIO"))
+					{
+						PRINTK_AUD_CLK("%s Aud enable_clock MT_CG_INFRA_AUDIO fail", __func__);
+					}
+					if (enable_clock(MT_CG_AUDIO_AFE, "AUDIO"))
+					{
+						PRINTK_AUD_CLK("%s Aud enable_clock MT_CG_AUDIO_AFE fail", __func__);
+					}
+					if (enable_clock(MT_CG_AUDIO_DAC, "AUDIO"))
+					{
+						PRINTK_AUD_CLK("%s MT_CG_AUDIO_DAC fail", __func__);
+					}
+					if (enable_clock(MT_CG_AUDIO_DAC_PREDIS, "AUDIO"))
+					{
+						PRINTK_AUD_CLK("%s MT_CG_AUDIO_DAC_PREDIS fail", __func__);
+					}
+			
+			
+	Ecarx MIC1：
+		DTS节点：
+		代码流程：
+			platform_name:
+			cpu_dai_name：
+			codec_dai_name:
+			codec_name：
+		
+	
+	
+	
+	
+----------------------------------------------------------------------------------------------------------------------------
+	audio 播放：
 		codec做从设备：
 		soc做主设备：（提供clk，函数调用：AudDrv_Clk_On()）
 		pcmC0D8p        I2S0DL1_PLayback
@@ -541,13 +646,13 @@ Audio：
 					.ops = &mt_machine_audio_ops,
 				},
 				
-		stream_name：
+	stream_name：
 		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_dai_stub.c:330:            .stream_name = MT_SOC_I2SDL1_STREAM_NAME,
 		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:719:        .stream_name = MT_SOC_I2SDL1_STREAM_NAME,
 		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_codec_63xx.c:1102:            .stream_name = MT_SOC_I2SDL1_STREAM_NAME,
 		sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:316:#define MT_SOC_I2SDL1_STREAM_NAME "I2S0DL1_PLayback"
 		
-		cpu_dai_name：
+	cpu_dai_name：
 		DTS：
 			MT_SOC_DAI_NAME@0x11220000 {
 				compatible = "mediatek,mt_soc_dai_stub";
@@ -557,7 +662,7 @@ Audio：
 		sound/soc/mediatek/mt_soc_audio_v3/mt_soc_machine.c:720:        .cpu_dai_name   = MT_SOC_I2S0DL1_NAME,
 		
 		
-		platform_name：（mt-soc-i2s0dl1-pcm）
+	platform_name：（mt-soc-i2s0dl1-pcm）
 		DTS：
 			MT_SOC_I2S0DL1_PCM@0x11220000 {
 				compatible = "mediatek,mt_soc_pcm_dl1_i2s0Dl1";
@@ -585,7 +690,7 @@ Audio：
 			Prepare：
 				
 				
-		codec_dai_name：（mt-soc-codec-I2s0tx-dai）
+	codec_dai_name：（mt-soc-codec-I2s0tx-dai）
 		
 		DTS：
 				MT_SOC_CODEC_NAME@0x11220000 {
@@ -613,10 +718,10 @@ Audio：
 		sound/soc/mediatek/mt_soc_audio_v3/AudDrv_Def.h:289:#define MT_SOC_CODEC_NAME "mt-soc-codec"
 		arch/arm64/boot/dts/mt6735.dtsi:1093:		MT_SOC_CODEC_NAME@0x11220000 {
 		
-		
+----------------------------------------------------------------------------------------------------------------------------		
 		
 		mic：
-		pcmC0D1c               MultiMedia1_Capture
+		pcmC0D1c1               MultiMedia2_Capture
 			    {
 					.name = "MultiMedia1",
 					.stream_name = MT_SOC_DL1_STREAM_NAME,
@@ -627,9 +732,46 @@ Audio：
 					.init = mt_soc_audio_init,
 					.ops = &mt_machine_audio_ops,
 				},
-		
+				
+				
+				{
+					.name = "I2S0_AWB_CAPTURE",
+					.stream_name = MT_SOC_I2S0AWB_STREAM_NAME,
+					.cpu_dai_name   = MT_SOC_I2S0AWBDAI_NAME,
+					.platform_name  = MT_SOC_I2S0_AWB_PCM,
+					.codec_dai_name = "ak7738-aif4",
+					.codec_name = "ak7738.3-0018",
+					.init = mt_soc_audio_init,
+					.ops = &mt_machine_audio_ops,
+				},
+				
 			
 		参考音：                     DL1_AWB_Record
+		
+		
+		Ecar回复：
+		1.播放：
+			tinyplay /sdcard/sine.wav
+			tinyplay 1.wav
+			2.录音：
+			tinycap  cap1.wav -D 0 -d 1 -r 48000
+			tinycap  cap2.wav -D 0 -d 16 -r 48000
+			
+		2.根据Ecarx确认的结果推测：
+			主声道设备：/dev/snd/pcmC0D0p
+			录音设备1:  /dev/snd/pcmC0D1c
+			录音设备2： /dev/snd/pcmC0D16c
+			
+================================================================================
+关于MTK Audio的疑问:是什么？		
+			AFE_VUL
+			AFE_DAC
+			AFE_I2S
+			AFE_MRGIF
+			AFE_DL1
+			AFE_DL2
+			AFE_AWB
+			AFE_DAI
 ================================================================================
 FB：
     MTKFB@5e200000 {
