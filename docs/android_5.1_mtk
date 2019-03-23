@@ -586,12 +586,26 @@ Audio：
 	Ecarx MIC1：
 		DTS节点：
 		代码流程：
+			machine:
+				    {
+						.name = "MultiMedia2",
+						.stream_name = MT_SOC_UL1_STREAM_NAME,
+						.cpu_dai_name   = MT_SOC_UL1DAI_NAME,
+						.platform_name  = MT_SOC_UL1_PCM,
+						.codec_dai_name = "ak7738-aif3",
+						.codec_name = "ak7738.3-0018",
+						.init = mt_soc_audio_init,
+						.ops = &mt_machine_audio_ops,
+					},
+					
 			platform_name:
 				DTS：
 					MT_SOC_UL1_PCM@0x11220000 {
 						compatible = "mediatek,mt_soc_pcm_capture";
 					};
 				
+				mt_soc_pcm_capture.c:815:    { .compatible = "mediatek,mt_soc_pcm_capture", },
+			
 			cpu_dai_name：
 			codec_dai_name:
 			codec_name：
@@ -751,11 +765,11 @@ Audio：
 		
 		Ecar回复：
 		1.播放：
-			tinyplay /sdcard/sine.wav
+			tinyplay /sdcard/sine.wav             //don't work
 			tinyplay 1.wav
 			2.录音：
-			tinycap  cap1.wav -D 0 -d 1 -r 48000
-			tinycap  cap2.wav -D 0 -d 16 -r 48000
+			tinycap  cap1.wav -D 0 -d 1 -r 48000   //work
+			tinycap  cap2.wav -D 0 -d 16 -r 48000  //don't work
 			
 		2.根据Ecarx确认的结果推测：
 			主声道设备：/dev/snd/pcmC0D0p
@@ -763,6 +777,33 @@ Audio：
 			录音设备2： /dev/snd/pcmC0D16c
 			
 ================================================================================
+
+================================================================================
+I2S1:
+	DTS:
+		MT_SOC_ROUTING_PCM@0x11220000 {
+			compatible = "mediatek,mt_soc_pcm_routing";
+			i2s1clk-gpio = <7 6>;
+			i2s1dat-gpio = <5 6>;
+			i2s1mclk-gpio = <9 6>;
+			i2s1ws-gpio = <6 6>;			
+		};
+	代码：
+		
+================================================================================
+
+================================================================================
+
+================================================================================
+
+================================================================================
+
+================================================================================
+
+================================================================================
+
+================================================================================
+
 关于MTK Audio的疑问:是什么？		
 			AFE_VUL
 			AFE_DAC
@@ -772,6 +813,8 @@ Audio：
 			AFE_DL2
 			AFE_AWB
 			AFE_DAI
+			
+			VUL/DL1/DL2/AWB
 ================================================================================
 FB：
     MTKFB@5e200000 {
@@ -991,6 +1034,7 @@ Touch：
 	流程：
 		drivers/misc/mediatek/dispsys/mt6735/ddp_dsi.c:3847:DDP_MODULE_DRIVER ddp_driver_dsi0 =
 		drivers/misc/mediatek/dispsys/mt6735/ddp_info.c:169:extern DDP_MODULE_DRIVER ddp_driver_dsi0;
+		drivers/misc/mediatek/dispsys/mt6735/ddp_manager.c:28:extern DDP_MODULE_DRIVER  * ddp_modules_driver[DISP_MODULE_NUM];
 		
 
 947芯片驱动：
@@ -1448,7 +1492,15 @@ MTK Camera:
 		platform/mt6735/recovery.c:93:BOOL recovery_check_command_trigger(void)
 	
 ================================================================================
+那鹏服务器：
+10.1.49.237
+app/app
+~/xiaokang/project/vendor/nxp/linux-4.14.78-imx8qxp
+
+
 ================================================================================
+Framebuffer:
+	/sys/kernel/debug/fbconfig
 ================================================================================
 ================================================================================
 ================================================================================
@@ -1581,6 +1633,45 @@ MTK Camera:
 ================================================================================
 ================================================================================
 ================================================================================
+LCD：
+	alps/bootable/bootloader/lk/dev/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/cpt_clap070wp03xg_sn65dsi83_ti947.c
+	alps/bootable/bootloader/lk/dev/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/sn65dsi83_i2c.c
+LOGO:
+	alps/bootable/bootloader/lk/dev/logo/ecarx1080p
+	
+BACKLIGHT:
+	alps/kernel-3.10/drivers/misc/mediatek/leds/leds_drv.c
+	alps/kernel-3.10/drivers/misc/mediatek/leds/mt6735/leds.c
+	alps/kernel-3.10/drivers/misc/mediatek/leds/drivers/leds/led-class.c
+	alps/kernel-3.10/drivers/misc/mediatek/mach/mt6735/carstd/leds/mt65xx/cust_leds.c
+
+KeyPad:
+	alps/kernel-3.10/drivers/input/misc/ecp_keypad.c
+	
+TP:	
+	alps/kernel-3.10/drivers/input/touchscreen/mediatek/TP_ti947_BIRD_C/tp_ti947_driver.c
+	
+TI947/DSI84:
+	alps/kernel-3.10/drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/cpt_clap070wp03xg_sn65dsi83_ti947.c	
+	alps/kernel-3.10/drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/sn65dsi83_i2c.c
+	alps/kernel-3.10/drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/ti947_i2c.c
+	alps/kernel-3.10/drivers/misc/mediatek/lcm/cpt_clap070wp03xg_sn65dsi83_ti947/ti948_i2c.c
+	
+BMI120:
+	alps/kernel-3.10/drivers/misc/mediatek/accelerometer/bmi160_acc/bmi160_acc.c
+	alps/kernel-3.10/drivers/misc/mediatek/gyroscope/bmi160_gyro/bmi160_gyro.c
+
+TEF6686: kernel-3.10/drivers/misc/mediatek/fm_tef668x 
+
+AK7738:  
+	kernel-3.10/sound/soc/mediatek/mt_soc_audio_v3/ ak7738.c
+	kernel-3.10/sound/soc/mediatek/mt_soc_audio_v3/ak7738ctl.h
+	kernel-3.10/sound/soc/mediatek/mt_soc_audio_v3/ ak7738_dsp_code.h
+	kernel-3.10/sound/soc/mediatek/mt_soc_audio_v3/ ak7738.h
+
+XF6001: 
+	kernel-3.10/drivers/xf6001sye/  xf6001sye.c
+	kernel-3.10/drivers/xf6001sye/  xf6001sye.h
 ================================================================================
 ================================================================================
 ================================================================================
