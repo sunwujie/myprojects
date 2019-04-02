@@ -323,7 +323,42 @@ bootlogo：
 MTK资源情况：
 	已知：
 	uart: 4路
-	IIS : 3路，2出1入
+		
+		Uart：
+			drivers/misc/mediatek/uart/uart.c
+		
+		DTS：
+			AP_UART1@0x11003000
+			AP_UART2@0x11004000
+			AP_UART3@0x11005000
+			AP_UART4@0x1100D000
+		
+		使用情况：
+			串口1：
+				/dev/ttyMT0 : 串口log 波特率为：921600n1
+			
+			串口2：
+				/dev/ttyMT1 :  RPC
+				
+			串口3：
+				未使用；与FPGA公用端子
+			
+			串口4：
+				预留
+	
+	I2S : 4路，2出2入
+		I2S0：master or slave ：输入
+			参考音录入：
+		
+		I2S1：master ：输出
+			未使用；与DPI端子公用
+		I2S2：master ：输入
+			MIC录入：
+		
+		I2S3：master ：输出
+			主声道
+	
+	
 	SPI ：1路
 
 ================================================================================
@@ -387,35 +422,6 @@ Audio：
             i2s1ws-gpio = <136 0>;
     };
 
-	MT_SOC_DL1_PCM@0x11220000 {
-                compatible = "ak7738";
-                reg = <0x18>;
-        };
-	};
-
-	
-			MT_SOC_DL1_PCM@0x11220000 {
-			compatible = "mediatek,mt_soc_pcm_dl1";
-			reg = <0x11220000 0x1000>;
-			interrupts = <0 144 0x8>;
-			audclk-gpio = <143 0>;
-			audmiso-gpio = <144 0>;
-			audmosi-gpio = <145 0>;
-			vowclk-gpio = <148 0>;
-			extspkamp-gpio = <129 0>;
-			extspkamp_2-gpio = <128 0>;
-			rcvspkswitch-gpio = <120 0>;						
-			i2s1clk-gpio = <135 0>;
-			i2s1dat-gpio = <137 0>;
-			i2s1mclk-gpio = <134 0>;
-			i2s1ws-gpio = <136 0>;
-		};
-	
-		FM platform：
-		TEF6686_FM_PCM {
-			compatible = "tef6686_fm_pcm";
-		};
-	
 	
 	代码：
 	
@@ -529,6 +535,15 @@ Audio：
 	
 	代码解析：
 	Ecarx主声道：
+		
+		I2S通道：
+			I2S1
+		
+		端子定义为：
+			20  GPIO5	I2S1_DO
+			21	GPIO6	I2S1_LRCK
+			22	GPIO7	I2S1_BCK		
+		
 		DTS节点：
 			    {
 					.name = "MultiMedia1",
@@ -584,6 +599,16 @@ Audio：
 			codec_name：
 		
 	Ecarx MIC1：
+	
+		I2S通路：
+			I2S0
+		
+		端子定义：
+			14	GPIO61 I2S0_BCK
+			13	GPIO62 I2S0_LRCK
+			11	GPIO63 I2S0_DI
+
+	
 		DTS节点：
 		代码流程：
 			machine:
@@ -632,7 +657,16 @@ Audio：
 					}
 			
 			
-	Ecarx MIC1：
+	Ecarx参考音通道：
+	
+		I2S通道：
+			I2S2
+		
+		端子定义：
+			15	I2S2_DI	     GPIO78
+			17	I2S2_LRCK    GPIO79
+			18	I2S2_BCK     GPIO80
+
 		DTS节点：
 		代码流程：
 			platform_name:
@@ -779,17 +813,6 @@ Audio：
 ================================================================================
 
 ================================================================================
-I2S1:
-	DTS:
-		MT_SOC_ROUTING_PCM@0x11220000 {
-			compatible = "mediatek,mt_soc_pcm_routing";
-			i2s1clk-gpio = <7 6>;
-			i2s1dat-gpio = <5 6>;
-			i2s1mclk-gpio = <9 6>;
-			i2s1ws-gpio = <6 6>;			
-		};
-	代码：
-		
 ================================================================================
 
 ================================================================================
@@ -935,6 +958,28 @@ DTS：
 		mtgpio
 	GPIO PIN属性：可读，可写
 		mtgpio/pin
+
+		
+MTK端子定义修改：
+	1.	打开DrvGen.exe工具
+			kernel-3.10/tools/dct/DrvGen.exe
+	2.	打开（open）下述文件：
+			kernel-3.10/drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/codegen.dws
+	3.	点击Edit，根据端子定义书，进行端子的配置
+	4.	点击save，询问是否保存时，选择否，出现warning时，选择确认
+	5.	将修改后的codegen.dws文件覆盖系统中其他同名文件：
+		kernel-3.10/drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/codegen.dws
+		bootable/bootloader/preloader/custom/emx8816aa/dct/dct/codegen.dws
+		bootable/bootloader/lk/target/emx8816aa/dct/dct/codegen.dws
+		vendor/mediatek/proprietary/custom/emx8816aa/kernel/dct/dct/codegen.dws
+	6.	重新编译LK及bootimage，并进行烧写
+
+	
+	======================================================================================
+	======================================================================================
+	======================================================================================
+	======================================================================================
+	
 	使用方法：
 		方法1：
 		GPIOMSG("cat pin  #show all pin setting\n");
@@ -948,7 +993,45 @@ DTS：
 		GPIOMSG("echo -w=num x x x x x x > pin #set all property one time\n");
 		GPIOMSG("PIN: [MODE] [PSEL] [DIN] [DOUT] [PEN] [DIR] [IES]\n");
 		
-		方法2：
+		echo \"-w=43:0 0 0 0 0 1 1\" > /sys/devices/virtual/misc/mtgpio/pin
+		
+			[wmode][wpsel][wdin][wdout][wpen][wdir][wies][*]
+		比如：947的PDB使用gpio43脚
+		
+			控制模式：
+				echo -wmode 43 0 > /sys/devices/virtual/misc/mtgpio/pin  //43:00000110
+				echo -wmode 43 1 > /sys/devices/virtual/misc/mtgpio/pin  //43:10000110
+				echo -wmode 43 2 > /sys/devices/virtual/misc/mtgpio/pin  //43:20000110
+				echo -wmode 43 3 > /sys/devices/virtual/misc/mtgpio/pin  //43:30000110
+			
+			控制上拉(1)或下拉(0)：
+				echo -wpsel 43 1 > /sys/devices/virtual/misc/mtgpio/pin  //43:01001110
+				echo -wpsel 43 0 > /sys/devices/virtual/misc/mtgpio/pin  //43:00001110
+				
+			控制是否上拉使能(1:使能；0：未使能)：
+				echo -wpen 43 0 > /sys/devices/virtual/misc/mtgpio/pin  //43:00000110
+				echo -wpen 43 1 > /sys/devices/virtual/misc/mtgpio/pin  //43:00001110
+				
+			控制输入（0）/输出（1）：
+				echo -wdir 43 0 > /sys/devices/virtual/misc/mtgpio/pin  //43:00000010
+				echo -wdir 43 1 > /sys/devices/virtual/misc/mtgpio/pin  //43:00000110
+			
+			控制输出低（0）/高（1）：
+				拉高拉低947的PDB：
+				echo -wdout 43 0 > /sys/devices/virtual/misc/mtgpio/pin  //43:00000110
+				echo -wdout 43 1 > /sys/devices/virtual/misc/mtgpio/pin  //43:00110110
+			
+			IES：
+				echo -wies 43 0 > /sys/devices/virtual/misc/mtgpio/pin  //43:00000100
+				echo -wies 43 1 > /sys/devices/virtual/misc/mtgpio/pin  //43:00000110
+				
+	======================================================================================
+	======================================================================================
+	======================================================================================
+	======================================================================================
+	======================================================================================
+	
+	方法2：
 		oned_gpio_fd =open("/dev/mtgpio", O_RDWR);  
 		if(oned_gpio_fd == -1)  
 		{  
@@ -974,6 +1057,14 @@ DTS：
 	
 	使用方式：
 		https://blog.csdn.net/richu123/article/details/51212302
+		
+		To show GPIO status:
+			adb shell "cat /sys/devicesirtual/misc/mtgpio/pin"
+		To change GPIO status:
+			adb shell "echo \"-w=99:0 1 0 0 0 1 0\" >/sys/devicesirtual/misc/mtgpio/pin"
+
+		PIN:     [MODE]   [PULL_SEL]     [DIN]   [DOUT]   [PULL EN]    [DIR]   [IES]   [SMT]
+		IO编号:  模式     输入上拉选择   输入值  输出值  输入上拉始能  方向     输入    翻转
 		
 		
 	Drvgen:
@@ -1120,8 +1211,7 @@ printk：
 		misc/mediatek/mtprof/mt_printk_ctrl.c
 	设备节点：
 		/proc/mtprintk
-	Uart：
-		drivers/misc/mediatek/uart/uart.c
+
 	printk：
 		kernel/printk.c
 	LK中设置参数：
@@ -1502,10 +1592,60 @@ app/app
 Framebuffer:
 	/sys/kernel/debug/fbconfig
 ================================================================================
+@各组TL
+
+BX11项目PP交样的日程，展开给大家，请大家组内展开。
+
+1.工程建立，完毕。路径如下：
+分支名称：e01_trunk
+SVN路径：http://10.1.55.2/svn/Geely_KC-2/SoftwareLibrary/06.Project/02.V850/Branches/E01/E01_Branch_20190111_RH850 
+2.编码，集成—————4/15前
+3.联合调试
+4.软件初版集成————4/25
+5.内部测试and问题整改
+6.PP装车版本集成——————4/29
+7.PP版本发布—————————5/2
+
+以上
+
+
+
 ================================================================================
+展频时钟：
+E01在使用8844的时候，SOC的展频功能可以打开；
+但不使用8844的时候，soc直连947的时候，需要将soc的展频关掉；
+
+可能原因是：
+947使用外部时钟，但soc的展频时钟不符合947的输入需求；
+而8844是异步时钟，可以接受外部的展频时钟，将其转化为正常时钟；
+
 ================================================================================
+typedef enum {
+        DUAL_CAMERA_NONE_SENSOR = 0,
+        DUAL_CAMERA_MAIN_SENSOR = 1,
+        DUAL_CAMERA_SUB_SENSOR = 2,
+        DUAL_CAMERA_MAIN_2_SENSOR = 4,
+        /* for backward compatible */
+        DUAL_CAMERA_MAIN_SECOND_SENSOR = 4,
+        /* DUAL_CAMERA_SUB_2_SENSOR   = 16, */
+        DUAL_CAMERA_SENSOR_MAX
+} CAMERA_DUAL_CAMERA_SENSOR_ENUM;
+
 ================================================================================
+倒车：
+	drivers/misc/mediatek/imgsensor/src/mt6735/kd_sensorlist.c:1714:    g_pSensorFunc->SensorGetInfo(pScenarioId, pInfo, pConfig);
+		CAMERA_HW_Ioctl
+	drivers/misc/mediatek/imgsensor/src/mt6735/ti940_mipi_yuv/ti940mipi_yuv_Sensor.c:2650:SENSOR_FUNCTION_STRUCT	SensorFuncTI940=
+
 ================================================================================
+
+1.	kd_sensorlist里为什么注册两个字符设备驱动kd_camera_hw 和 kd_camera_hw_bus2？作用是？是针对于两个摄像头驱动吗？
+	同时，注册了两个i2c设备，是针对于两个I2C芯片吗？
+	这两个I2C设备在不同的I2C总线上。
+
+2.	kd_sensorlist.h中kdSensorList驱动数组为什么没有定义TI940_MIPI_YUV宏，这样的话，940的SensorFuncTI940定义的函数均不能调用。
+3.	#define TI940_SENSOR_ID 0x58 ：sensorid根据什么来定义呢？
+
 ================================================================================
 ================================================================================
 ================================================================================
@@ -1673,6 +1813,22 @@ XF6001:
 	kernel-3.10/drivers/xf6001sye/  xf6001sye.c
 	kernel-3.10/drivers/xf6001sye/  xf6001sye.h
 ================================================================================
+常用的GPIO：
+	输出GPIO：
+		standbyen：
+			pin165 gpio21
+		bl_en:
+			pin33 gpio146
+		
+		947PDB:
+			pin178 gpio43
+			
+		947 touch gpio:
+			pin150 gpio11
+		
+		
+		
+		
 ================================================================================
 ================================================================================
 ================================================================================
