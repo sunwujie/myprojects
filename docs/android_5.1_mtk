@@ -363,7 +363,7 @@ MTK资源情况：
 
 ================================================================================
 E01 MTK 代码下载：
-	repo init -u ssh://qinxb@10.1.55.31:29418/E01/platform/manifest -b master
+	repo init -u ssh://qinxb@10.1.55.31:29418/E01_0308/platform/manifest -b e01_trunk
 	repo sync
 
 JDK配置:
@@ -802,8 +802,13 @@ Audio：
 			tinyplay /sdcard/sine.wav             //don't work
 			tinyplay 1.wav
 			2.录音：
+			//mic：
 			tinycap  cap1.wav -D 0 -d 1 -r 48000   //work
+			//参考音
 			tinycap  cap2.wav -D 0 -d 16 -r 48000  //don't work
+			
+			
+			cat /proc/asound/card0/pcm0p/sub0/hw_params
 			
 		2.根据Ecarx确认的结果推测：
 			主声道设备：/dev/snd/pcmC0D0p
@@ -967,15 +972,21 @@ MTK端子定义修改：
 			kernel-3.10/drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/codegen.dws
 	3.	点击Edit，根据端子定义书，进行端子的配置
 	4.	点击save，询问是否保存时，选择否，出现warning时，选择确认
-	5.	将修改后的codegen.dws文件覆盖系统中其他同名文件：
+	5.	点击生成代码
+	6.	将修改后的codegen.dws文件覆盖系统中其他同名文件：
 		kernel-3.10/drivers/misc/mediatek/mach/mt6735/emx8816aa/dct/dct/codegen.dws
 		bootable/bootloader/preloader/custom/emx8816aa/dct/dct/codegen.dws
 		bootable/bootloader/lk/target/emx8816aa/dct/dct/codegen.dws
 		vendor/mediatek/proprietary/custom/emx8816aa/kernel/dct/dct/codegen.dws
-	6.	重新编译LK及bootimage，并进行烧写
-
+	7.	重新编译lk及bootimage，并进行烧写
 	
 	======================================================================================
+	MTK Android编译命令
+		make lk -j8
+		make preloader -j8
+		make bootimage -j8
+		make recoveryimage -j8
+		make systemimage -j8
 	======================================================================================
 	======================================================================================
 	======================================================================================
@@ -1827,12 +1838,426 @@ XF6001:
 			pin150 gpio11
 		
 		
+	显示：
+		背光	：GPIO146
+		947PDB	：GPIO43
+		DSI EN	：GPIO126
+		TP INT	：GPIO11
+		DSI INT	: GPIO125
+		
+================================================================================
+
+E01 东软I2C配置：
+I2C总线配置：
+	I2C0：
+	I2C1：
+		UB947：0x0C
+		Touch：0x1A
+		948	:  0x2C
+		
+		DSI84：0x2D
+		 9277: 0xC4
+		 
+	I2C2：
+		TW9992: 0x45
+		 UB962: 0x30
+	
+	I2C3：
+		775D: 0x38(8bit) 0x1C(7bit)
+		  VR: 0x47
+================================================================================
+
+1.	用i2cdetect检测有几组i2c总线在系统上，输入：i2cdetect -l
+	root@fe5b_qj_1wk:/ # i2cdetect -l
+	i2c-0   i2c             mt-i2c                                  I2C adapter
+	i2c-1   i2c             mt-i2c                                  I2C adapter
+	i2c-2   i2c             mt-i2c                                  I2C adapter
+	i2c-3   i2c             mt-i2c                                  I2C adapter
+
+2.	用i2cdetect检测挂载在i2c总线上器件，输入：i2cdetect -r -y 1
+3.	用i2cdump查看器件所有寄存器的值，输入：i2cdump -f -y 1 0x20
+4.	用i2cset和i2cget使用方法：
+	i2cset -f -y 1 0x20 0x77 0x3f （设置i2c-1上0x20器件的0x77寄存器值为0x3f）
+	i2cget -f -y 1 0x20 0x77     （读取i2c-1上0x20器件的0x77寄存器值）
+	
+	
+================================================================================	
+	
+I2C-Tools (4.0)
+	The I2C tools that used to be part of the lm-sensors package have been split to a separate package. The rationale for that move is that not all hardware monitoring chips are I2C devices, and not all I2C devices are hardware monitoring chips, so having everything in a single package was confusing and impractical.
+	The i2c-tools package contains a heterogeneous set of I2C tools for Linux: a bus probing tool, a chip dumper, register-level SMBus access helpers, EEPROM decoding scripts, EEPROM programming tools, and a python module for SMBus access. All versions of Linux are supported, as long as I2C support is included in the kernel.
+
+下载地址
+	https://i2c.wiki.kernel.org/index.php/I2C_Tools 或者
+	git clone git://git.kernel.org/pub/scm/utils/i2c-tools/i2c-tools.git
+
+执行文件
+	i2c-tools -4.0包含五个执行文件
+	i2cdetect – 显示所有的i2c适配器(控制器)及其使用的外设
+	i2cdump –读取外设所有register的值
+	i2cget – 读取外设某个register的值
+	i2cset – 向外设某个register写入值
+	i2ctransfer –读写i2c设备的数据 -4.0版本添加
+
+帮助信息
+i2ctransfer –help信息                                    
+Usage: i2ctransfer [-f] [-y] [-v] [-V] I2CBUS DESC [DATA] [DESC [DATA]]...
+  I2CBUS is an integer or an I2C bus name
+  DESC describes the transfer in the form: {r|w}LENGTH[@address]
+    1) read/write-flag  2) LENGTH (range 0-65535)  3) I2C address (use last one if omitted)
+  DATA are LENGTH bytes for a write message. They can be shortened by a suffix:
+    = (keep value constant until LENGTH)    //写入LENGTH个相同的数据
+    + (increase value by 1 until LENGTH)     //写入LENTH个数据，数据递加
+		- (decrease value by 1 until LENGTH)    //写入LENTH个数据，数据递减
+p (use pseudo random generator until LENGTH with value as seed)   //写入随机数
+
+Example (bus 0, read 8 byte at offset 0x64 from EEPROM at 0x50):
+	# i2ctransfer 0 w1@0x50 0x64 r8
+Example (same EEPROM, at offset 0x42 write 0xff 0xfe ... 0xf0):
+	# i2ctransfer 0 w17@0x50 0x42 0xff-
+	eg：# i2ctransfer -f -y 1 w1@0x33 0x55 r5
+	0x67 0x76 0x30 0x30 0x32
+
+-f 强制执行，否则会提示Device or resource busy
+-y 默认执行yes ，否则会提示确认执行Continue? [Y/n] Y
+
+i2cdetect ，i2cdump ，i2cget ，i2cset不带参数执行时会显示对应的帮助信息，可参考。
+	例：列举i2c总线
+	i2cdetect -l
+	列举 I2C bus i2c-1 上面连接的所有i2c设备
+	
+	i2cdetect -y 1
+	如：读取I2C 设备(地址为0x33)寄存器0x55的值，W表示读取长度为一个word，默认为一个字节
+	i2cget -y -f 1 0x33 0x55 w                          
+	0x7667
+	
+	设置 I2C 设备(地址为0x33)寄存器0x03的值为0x05
+	# i2cset -y -f 1 0x33 0x03 0x05
+	dump I2C 读取外设(地址为0x33)的所有寄存器值
+	i2cdump -y -f 1 0x33
+
+参考资料：
+	http://blog.csdn.net/lqxandroid2012/article/details/48527887
+
+================================================================================
+
+
+小新，晓彬：
+
+清明加班安排财哥对应，有问题请联络
+
+电话：13898470481
+
+以上
+
+================================================================================
+端子定义疑问：
+217	E01_I2C_SCL0	1	YES	I2C1_3V3	CONT_I2C1_3V3	Output			GPIO48	B1:SCL0	
+218	E01_I2C_SDA0	1	YES	MCU	E01_NR-3V3-CONT	Output			GPIO47	B1:SDA0	
+
+================================================================================
+947测试模式：
+	i2cset -f -y 0x01 0x0c 0x65 0x10
+	i2cset -f -y 0x01 0x0c 0x64 0x05
+
+
+	i2cset -f -y 0x01 0x0c 0x65 0x11
+	i2cset -f -y 0x01 0x0c 0x64 0x01
+
+	i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x65 data=0x11
+	i2c_rw op=write bus-id=0x2 dev-id=0x38 addr=0x64 data=0x01
+
+================================================================================
+
+Touch：
+	947的INTB端子为中断端子，无touch事件发生时为高电平，当存在touch事件时，为低电平。
+	读取0xC7寄存器，可以清空947中断，拉高947的INTB端子。
+
+================================================================================
+9992：
+	寄存器：
+	0X03状态寄存器：01101000
+
+
+================================================================================
+
+962通道切换：
+	
+	AVM：
+		TI962_write_cmos_sensor(0x0C, 0x04); // port2 AVM
+		TI962_write_cmos_sensor(0x4C, 0x24); // port2 AVM
+		TI962_write_cmos_sensor(0x20, 0xB0); // port2 AVM
+	
+	DVR：
+		TI962_write_cmos_sensor(0x0C, 0x08); // port3 DVR
+		TI962_write_cmos_sensor(0x4C, 0x38); // port3 DVR
+		TI962_write_cmos_sensor(0x20, 0x70); // port3 DVR
+	
+	BSD：
+		TI962_write_cmos_sensor(0x0C, 0x02); // port1 BSD
+		TI962_write_cmos_sensor(0x4C, 0x12); // port1 BSD	
+		TI962_write_cmos_sensor(0x20, 0xD0); // port1 BSD
+
+查看当前通道：
+
+
+Lock状态：
+	0x4D 
+	bit0 : 1 lock 
+		   0 unlock
+	bit1 : 1 met PASS criteria
+		   0 not meet PASS criteria
+		   
+
+测试模式：		   
+	i2cset -f -y 0x02 0x30 0x33  0x01
+	i2cset -f -y 0x02 0x30 0xB0  0x00
+	i2cset -f -y 0x02 0x30 0xB1  0x01
+	i2cset -f -y 0x02 0x30 0xB2  0x01
+	i2cset -f -y 0x02 0x30 0xB1  0x02
+	i2cset -f -y 0x02 0x30 0xB2  0x33
+	i2cset -f -y 0x02 0x30 0xB1  0x03
+	i2cset -f -y 0x02 0x30 0xB2  0x24
+	i2cset -f -y 0x02 0x30 0xB1  0x04
+	i2cset -f -y 0x02 0x30 0xB2  0x0F
+	i2cset -f -y 0x02 0x30 0xB1  0x05
+	i2cset -f -y 0x02 0x30 0xB2  0x00
+	i2cset -f -y 0x02 0x30 0xB1  0x06
+	i2cset -f -y 0x02 0x30 0xB2  0x01
+	i2cset -f -y 0x02 0x30 0xB1  0x07
+	i2cset -f -y 0x02 0x30 0xB2  0xE0
+	i2cset -f -y 0x02 0x30 0xB1  0x08
+	i2cset -f -y 0x02 0x30 0xB2  0x02
+	i2cset -f -y 0x02 0x30 0xB1  0x09
+	i2cset -f -y 0x02 0x30 0xB2  0xD0
+	i2cset -f -y 0x02 0x30 0xB1  0x0A
+	i2cset -f -y 0x02 0x30 0xB2  0x04
+	i2cset -f -y 0x02 0x30 0xB1  0x0B
+	i2cset -f -y 0x02 0x30 0xB2  0x1A
+	i2cset -f -y 0x02 0x30 0xB1  0x0C
+	i2cset -f -y 0x02 0x30 0xB2  0x0C
+	i2cset -f -y 0x02 0x30 0xB1  0x0D
+	i2cset -f -y 0x02 0x30 0xB2  0x67
+	i2cset -f -y 0x02 0x30 0xB1  0x0E
+	i2cset -f -y 0x02 0x30 0xB2  0x21
+	i2cset -f -y 0x02 0x30 0xB1  0x0F
+	i2cset -f -y 0x02 0x30 0xB2  0x0A
+
+================================================================================
+
+Camera Hal：
+
+
+preview：
+	core/camnode/pass2node.preview.cpp
+	core/camnode/ICamGraphNode.cpp
+
+	hal/aaa/aaa_hal_if.cpp
+		MIPI接口
+		setSeninf1NCSI2
+
+
+
+        if(!(( SENINF_READ_REG(pSeninf,MIPI_RX_CON44_CSI0)& 0x10001) && (SENINF_READ_REG(pSeninf,MIPI_RX_CON48_CSI0) & 0x101))){
+         LOG_ERR("CSI-0 calibration failed!, NCSI2Config Reg 0x44=0x%x, 0x48=0x%x\n",SENINF_READ_REG(pSeninf,MIPI_RX_CON44_CSI0),SENINF_READ_REG(pSeninf,MIPI_RX_CON48_CSI0));
+         //ret = -1;
+        }
+
+	重要文件路径：
+	modified:   ../../../hardware/mtkcam/v1/test/inc/CamLog.h
+	modified:   mtkcam/D1/core/featureio/pipe/aaa/aaa_hal_yuv.cpp
+	modified:   mtkcam/D1/hal/sensor/HalSensor.control.cpp
+	modified:   mtkcam/D1/hal/sensor/HalSensorList.openList.cpp
+	modified:   mtkcam/D1/hal/sensor/seninf_drv.cpp
+
+	//MIPI设置相关
+	HalSensor.control.cpp
+		MINT HalSensor::seninfControl(MUINT8 enable, MUINT32 currSensorDev)    // 根据meSensorDev，设置MIPI口；sensorPara摄像头参数
+			
+			seninf_drv.cpp
+			int SeninfDrvImp::setSeninf1NCSI2(
+				unsigned long dataTermDelay, unsigned long dataSettleDelay,
+				unsigned long clkTermDelay, unsigned long vsyncType,
+				unsigned long dlaneNum, unsigned long ncsi2En,
+				unsigned long dataheaderOrder, unsigned long mipi_type,
+				unsigned long HSRXDE, unsigned long dpcm
+			)
+	
+
+
+
+	startpreview：
+	
+		路径：
+			vendor/mediatek/proprietary/platform/mt6735/hardware/mtkcam/D1/v1/adapter/MtkStereo
+		
+		MtkStereoCamAdapter.h
+		platform/mt6735/hardware/mtkcam/D1/v1/adapter/MtkStereo/MtkStereoCamAdapter.Preview.cpp
+		
+		Capture：
+		MtkStereoCamAdapter.Capture.cpp
 		
 		
+	hardware/mtkcam/module_hal/devicemgr/CamDeviceManagerBase.cpp:197:        mi4DeviceNum = enumDeviceLocked();
+	
+	
+	DVR Camera：
+	1.
+		http://10.1.55.31:8088/#/c/1299/
+		在device/pvetec/e01_base/ProjectConfig.mk中配置
+			CUSTOM_HAL_IMGSENSOR = ti962_mipi_yuv
+			CUSTOM_HAL_MAIN_IMGSENSOR = ti962_mipi_yuv
+			CUSTOM_KERNEL_IMGSENSOR = ti962_mipi_yuv
+			CUSTOM_KERNEL_MAIN_IMGSENSOR = ti962_mipi_yuv
+	2。
+		在vendor/mediatek/proprietary/custom/emx8816aa/hal/imgsensor_src/sensorlist.cpp添加芯片驱动信息
+		MSDK_SENSOR_INIT_FUNCTION_STRUCT SensorList[]
+			#if defined(TI962_MIPI_YUV)
+				YUV_INFO(TI962_SENSOR_ID, SENSOR_DRVNAME_TI962_YUV, NULL),
+			#endif
+	
+	devicemgr/CamDeviceManagerImp.cpp:222:    size_t const sensorNum = pHalSensorList->searchSensors();	
+	hal/sensor/HalSensorList.cpp:132:    return  enumerateSensor_Locked();
+		MVOID HalSensorList::querySensorDrvInfo()
+	
+	
+	
+	hal/sensor/HalSensorList.enumList.cpp:180:    int const iSensorsList = pSensorDrv->impSearchSensor(NULL);
+	hal/sensor/imgsensor_drv.cpp:147:ImgSensorDrv::impSearchSensor(pfExIdChk pExIdChkCbf)
+	hal/sensor/imgsensor_drv.cpp:189:    GetSensorInitFuncList(&m_pstSensorInitFunc);            
+		//将driver_list赋值为m_pstSensorInitFunc
+		//在该函数中打开设备节点：kd_camera_hw
+		// 需要找到地方设置 MTK_SUB_IMGSENSOR ？？？？？
+				#ifdef MTK_MAIN2_IMGSENSOR
+
+					LOG_ERR("[impSearchSensor]: MTK_MAIN2_IMGSENSOR qinxb \n");
+					for (SensorEnum = DUAL_CAMERA_MAIN_SENSOR; SensorEnum <= DUAL_CAMERA_MAIN_2_SENSOR; SensorEnum <<= 1)  {
+						LOG_MSG("impSearchSensor search to main_2\n");
+				#else
+				   #ifdef MTK_SUB_IMGSENSOR
+					LOG_ERR("[impSearchSensor]: MTK_SUB_IMGSENSOR qinxb \n");
+					for (SensorEnum = DUAL_CAMERA_MAIN_SENSOR; SensorEnum <= DUAL_CAMERA_SUB_SENSOR; SensorEnum <<= 1)  {
+						LOG_MSG("impSearchSensor search to sub\n");
+				   #else
+				   LOG_ERR("[impSearchSensor]: Else qinxb \n");
+					for (SensorEnum = DUAL_CAMERA_MAIN_SENSOR; SensorEnum < DUAL_CAMERA_SUB_SENSOR; SensorEnum <<= 1)  {
+						LOG_MSG("impSearchSensor search to main\n");
+				   #endif
+				#endif
+		
+		//  id[KDIMGSENSOR_INVOKE_DRIVER_0] = (SensorEnum << KDIMGSENSOR_DUAL_SHIFT) | i; //仅设置了驱动0，未设置驱动1，该处需要修改？？？？？
+		
+	imgsensor_src/sensorlist.cpp:409:UINT32 GetSensorInitFuncList(MSDK_SENSOR_INIT_FUNCTION_STRUCT **ppSensorList)
+
+	
+	
+	
+	
+	驱动全局变量：
+		 g_invokeSocketIdx[0] = 0x01  // 962
+		 g_invokeSocketIdx[1] = 0x02  // 9992
+		 
+		 drvIdx[0] = 0x00   //第一个驱动
+		 drvIdx[1] = 0x01   //第二个驱动
+		 
+		 g_pInvokeSensorFunc[0] = SensorFuncTI962 // 962提供的函数 
+		 g_pInvokeSensorFunc[1] = SensorFunc9992  // 9992提供的函数
+		 
+		 g_invokeSensorNameStr[0] = ti962_mipi_yuv
+		 g_invokeSensorNameStr[1] = 9992_cvbs_yuv
+		 
+		 g_bEnableDriver[0] = TRUE;
+		 g_bEnableDriver[1] = TRUE;
+		 
+		 
+	HalSensorList.enumList.cpp	 
+		HalSensorList::enumerateSensor_Locked()
+			imgsensor_drv.cpp
+			ImgSensorDrv::impSearchSensor(pfExIdChk pExIdChkCbf)
+			
+================================================================================
+InstantCam：
+	instantcam.c:1048:    init_camio();
+		p1_camio.cpp:513:    IHalSensorList* const pHalSensorList = IHalSensorList::get();
+			D1/hal/sensor/HalSensorList.cpp:87:    return HalSensorList::singleton();
+		p1_camio.cpp:712:    pHalSensorList->searchSensors();
+			D1/hal/sensor/HalSensorList.cpp:127:searchSensors()
+				D1/hal/sensor/HalSensorList.cpp:132:    return  enumerateSensor_Locked();
+					D1/hal/sensor/HalSensorList.enumList.cpp:138:enumerateSensor_Locked()
+						D1/hal/sensor/imgsensor_drv.cpp:52:    return ImgSensorDrv::singleton();
+							D1/hal/sensor/imgsensor_drv.cpp:147:ImgSensorDrv::impSearchSensor(pfExIdChk pExIdChkCbf)
+								D1/hal/sensor/imgsensor_drv.cpp:189:    GetSensorInitFuncList(&m_pstSensorInitFunc);
+								    sprintf(cBuf,"/dev/%s",CAMERA_HW_DEVNAME); //kd_camera_hw
+									m_fdSensor = ::open(cBuf, O_RDWR);
+									
+									ioctl(m_fdSensor, KDIMGSENSORIOC_X_SET_DRIVER,&id[KDIMGSENSOR_INVOKE_DRIVER_0] ); //
+						
+						D1/hal/sensor/HalSensorList.enumList.cpp:183:    querySensorDrvInfo();
+							D1/hal/sensor/HalSensorList.getInfo.cpp:91:MVOID HalSensorList::querySensorDrvInfo()
+								D1/hal/sensor/imgsensor_drv.cpp:431:ImgSensorDrv::init
+									     //没有看懂
+										SELECT_PRIORITY_DRIVER(main,N2D_PRIORITY_DRIVER);
+										//SELECT_PRIORITY_DRIVER(main2,N2D_PRIORITY_DRIVER);
+										SELECT_PRIORITY_DRIVER(sub,N2D_PRIORITY_DRIVER);
+										
+										sensorDrvInit[0] = 0x00010000
+										sensorDrvInit[1] = 0x00020001
+										
+										ioctl(m_fdSensor, KDIMGSENSORIOC_X_SET_DRIVER,sensorDrvInit);
+										getResolution(pSensorResInfo);
+
+								D1/hal/sensor/HalSensorList.getInfo.cpp:111:        pSensorDrv->getInfo2((SENSOR_DEV_ENUM)sensorDev,&sensorDrvInfo[i]);
+									D1/hal/sensor/imgsensor_drv.cpp:2246:ImgSensorDrv::getInfo2(
+									D1/hal/sensor/HalSensorList.getInfo.cpp:127:    querySensorInfo();//to remap data
+									D1/hal/sensor/HalSensorList.getInfo.cpp:226:MVOID HalSensorList::querySensorInfo()
+								
+								
+						
+						
+								
+extern "C" int init_camio(){
+
+
+================================================================================
+
+
+D/ImgSensorDrv( 2510): [impSearchSensor]set sensor driver id =10000
+D/ImgSensorDrv( 2510): [impSearchSensor]set sensor driver id =10001
+D/ImgSensorDrv( 2510): [impSearchSensor]set sensor driver id =20000
+D/ImgSensorDrv( 2510): [impSearchSensor]set sensor driver id =20001
+
+kdSetDriver（10000）
+kdSetDriver（10001）
+kdSetDriver（20000）
+kdSetDriver（20001）
+
+
+[    7.657284]<1>.(0)[161:instantcam][kd_sensorlist][kdSetDriver] pDrvIndex:0x00010000/0x00000000
+[    7.674572]<1>.(1)[161:instantcam][kd_sensorlist][kdSetDriver] pDrvIndex:0x00010001/0x7665642f
+[    7.701291]<1>.(1)[161:instantcam][kd_sensorlist][kdSetDriver] pDrvIndex:0x00020000/0x00010001
+[    7.734871]<1>.(1)[161:instantcam][kd_sensorlist][kdSetDriver] pDrvIndex:0x00020001/0x7665642f
+
+[    7.765486]<1>.(1)[161:instantcam][kd_sensorlist][kdSetDriver] pDrvIndex:0x00010000/0x00000000
+[   11.745683]<3>.(3)[256:mediaserver][kd_sensorlist][kdSetDriver] pDrvIndex:0x00010000/0x00000000
+[   11.779492]<0>.(0)[256:mediaserver][kd_sensorlist][kdSetDriver] pDrvIndex:0x00010001/0x7665642f
+[   11.831151]<3>.(3)[256:mediaserver][kd_sensorlist][kdSetDriver] pDrvIndex:0x00020000/0x00010001
+[   11.879337]<1>.(1)[256:mediaserver][kd_sensorlist][kdSetDriver] pDrvIndex:0x00020001/0x7665642f
+
+[   12.003494]<3>.(1)[256:mediaserver][kd_sensorlist][kdSetDriver] pDrvIndex:0x00010000/0x00000000
+[   12.005087]<3>.(1)[256:mediaserver][kd_sensorlist][kdSetDriver] pDrvIndex:0x00010000/0x00000000
+
+
+================================================================================
+
 ================================================================================
 ================================================================================
+
 ================================================================================
+
 ================================================================================
+
 ================================================================================
+
 ================================================================================
+
 ================================================================================
