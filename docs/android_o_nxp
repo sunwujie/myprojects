@@ -659,6 +659,8 @@ DTS：
 关闭Log：
 	echo 0 > /proc/sys/kernel/printk
 	
+	echo 7 > /proc/sys/kernel/printk
+	
 	cat /proc/kmsg | busybox more
 
 =======================================================================================
@@ -878,6 +880,11 @@ drm_connector.c
 
 
 echo 0 > /proc/sys/kernel/printk
+
+
+tinyplay /sdcard/sine.wav  &
+tinycap data/test-mic-yzx-520-01.wav -D 0 -d 16
+
 
  
 service klog /system/bin/klog.sh
