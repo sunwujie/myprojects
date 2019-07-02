@@ -1593,6 +1593,27 @@ MTK Android Driver知识大全
      12202.939846 : Android:PMS_READY
      16749.123154 : BOOT_Animation:END
 ----------------------------------------
+
+
+bootprof的使用方法：
+应用程序的调用：
+static void add_boot_event(char *bootevent) {
+    int fd = open("/proc/bootprof", O_RDWR);
+    if(fd < 0) {
+        ALOGE("fail to open bootprof: %s", strerror(errno));
+        return;
+    }
+    write(fd, bootevent, strlen(bootevent));
+    close(fd);
+}
+
+
+add_boot_event("fastlogo display");
+
+
+驱动支持：
+drivers/misc/mediatek/mtprof/bootprof.c
+
 ================================================================================
 MTK Camera:
 	MTK Camera 从底层到应用层一网打尽
