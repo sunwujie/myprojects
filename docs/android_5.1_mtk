@@ -2219,23 +2219,6 @@ DSI84：
 	5：When the DSI channel A packet processor detects an uncorrectable ECC error, this bit is set; this bit is cleared by writing a ‘1’ value.
 	4：When the DSI channel A packet processor detects a correctable ECC error, this bit is set; this bit is cleared by writing a ‘1’ value.
 	3：When the DSI channel A packet processor detects a low level protocol error, this bit is set; this bit is cleared by writing a ‘1’ value.
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 948：
 正常情况：
@@ -2469,6 +2452,19 @@ Lock状态：
 	i2cset -f -y 0x02 0x30 0xB1 0x0F
 	i2cset -f -y 0x02 0x30 0xB2 0x0A
 
+	
+	line count：
+	寄存器地址    :0x73（高） 0x74（低）
+	寄存器值16进制:02         cf 
+	十进制        :719
+
+	linelenth:
+	寄存器地址    :0x75（高） 0x76（低）
+	寄存器值16机制:0a         00
+	十进制        :2560
+	
+	上面获取的为962接受到的字节，因yuv格式一个像素两个字节，因此，分辨率为：1280*719
+		
 ================================================================================
 	下线配置：
 	
