@@ -45,7 +45,7 @@ Geely MTK BSP资料及硬件相关资料(Block图)，均放到了下述路径。
 
 环境配置：
 	基于android 4.3的编译环境，安装下述包，即可编译mtk的android 5.1
-	sudo apt-get install sudo apt-get install  openjdk-7-jdk gperf libxml2-utils make python-networkx zlib1g-dev:i386 zip build-essential flex mingw32 tofrodos libswitch-perl
+	sudo apt-get install  openjdk-7-jdk gperf libxml2-utils make python-networkx zlib1g-dev:i386 zip build-essential flex mingw32 tofrodos libswitch-perl
 	
 	android 4.3需要jdk为1.6
 	android 5.1 需要jdk为1.7
@@ -564,7 +564,8 @@ Audio：
 	Ecarx主声道：
 		
 		I2S通道：
-			I2S1
+			I2S3
+			SOC做主
 		
 		端子定义为：
 			20  GPIO5	I2S1_DO
@@ -625,10 +626,11 @@ Audio：
 			codec_dai_name:
 			codec_name：
 		
-	Ecarx MIC1：
+	Ecarx MIC：
 	
 		I2S通路：
-			I2S0
+			I2S2
+			SOC做主
 		
 		端子定义：
 			14	GPIO61 I2S0_BCK
@@ -687,12 +689,12 @@ Audio：
 	Ecarx参考音通道：
 	
 		I2S通道：
-			I2S2
+			I2S
 		
 		端子定义：
-			15	I2S2_DI	     GPIO78
-			17	I2S2_LRCK    GPIO79
-			18	I2S2_BCK     GPIO80
+			15	I2S0_DI	     GPIO78
+			17	I2S0_LRCK    GPIO79
+			18	I2S0_BCK     GPIO80
 
 		DTS节点：
 		代码流程：
@@ -826,13 +828,13 @@ Audio：
 		
 		Ecar回复：
 		1.播放：
-			tinyplay /sdcard/sine.wav             //don't work
+			tinyplay /sdcard/sine.wav
 			tinyplay 1.wav
 			2.录音：
 			//mic：
-			tinycap  cap1.wav -D 0 -d 1 -r 48000   //work
+			tinycap  /data/cap1.wav -D 0 -d 1 -r 48000
 			//参考音
-			tinycap  cap2.wav -D 0 -d 16 -r 48000  //don't work
+			tinycap  /data/cap2.wav -D 0 -d 16 -r 48000
 			
 			
 			cat /proc/asound/card0/pcm0p/sub0/hw_params
@@ -2698,6 +2700,27 @@ kdSetDriver（20001）
 	i2cset -f -y 0x01 0x0c 0xC6  0x21
 	i2cset -f -y 0x01 0x0c 0x4f  0xC0
 
+	 i2cset -f -y 0x01 0x0c 0x40 0x10
+	 i2cset -f -y 0x01 0x0c 0x41 0x4A
+	 i2cset -f -y 0x01 0x0c 0x42 0xFF
+	 i2cset -f -y 0x01 0x0c 0x41 0x4B
+	 i2cset -f -y 0x01 0x0c 0x42 0x88
+	 i2cset -f -y 0x01 0x0c 0x41 0x49
+	 i2cset -f -y 0x01 0x0c 0x42 0x10
+	 sleep 0.01
+	 i2cset -f -y 0x01 0x0c 0x42 0x00
+	 i2cset -f -y 0x01 0x0c 0x40 0x14
+	 i2cset -f -y 0x01 0x0c 0x41 0x4A
+	 i2cset -f -y 0x01 0x0c 0x42 0xFF
+	 i2cset -f -y 0x01 0x0c 0x41 0x4B
+	 i2cset -f -y 0x01 0x0c 0x42 0x88
+	 i2cset -f -y 0x01 0x0c 0x41 0x49
+	 i2cset -f -y 0x01 0x0c 0x42 0x10
+	 sleep 0.01
+	 i2cset -f -y 0x01 0x0c 0x42 0x00
+	
+	
+	
 
 DSI84：
 
