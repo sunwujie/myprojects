@@ -47,7 +47,7 @@ MTK：
 	dd if=u-boot.bin of=/dev/block/mmcblk0boot0 bs=512 seek=2 skip=2 && sync
 	echo 1 > /sys/block/mmcblk0boot0/force_ro
 
-
+	dd if=boot.img of=/dev/block/mmcblk0p1 && sync
 
 	echo 0 > /sys/block/mmcblk0boot1/force_ro
 	dd if=u-boot.bin of=/dev/block/mmcblk0boot1 bs=512 seek=2 skip=2 && sync
@@ -513,7 +513,7 @@ usb84602.c
 // TPS2549控制驱动
 tps2549.c
 
-// Host Hub
+// Host 
 usb82512.c
 
 // Touch
@@ -536,8 +536,8 @@ mfd_ts.c
 ds90927.c
 
 --------------------------
-HUB:
-hub.c
+:
+.c
 
 
 // Carplay
@@ -752,16 +752,16 @@ cs 每秒上下文切换次数，例如我们调用系统函数，就要进行�
 make_ext4fs -S out/target/product/cv_fsl_imx6dl_qj_2wk/root/file_contexts -l 943718400 -a system out/target/product/cv_fsl_imx6dl_qj_2wk/system.img out/target/product/cv_fsl_imx6dl_qj_2wk/system
 
 ================================================================================
-USB HUB:
+USB :
 
 usb_init //usb.c
-usb_hub_init //hub.c
-hub_thread //hub.c
-hub_events //hub.c
-hub_port_connect_change //hub.c
+usb__init //.c
+_thread //.c
+_events //.c
+_port_connect_change //.c
 
 
-struct usb_hub {
+struct usb_ {
 struct device *intfdev; /* the "interface" device */
 struct usb_device *hdev;
 struct kref kref;
@@ -770,7 +770,7 @@ struct urb *urb; /* for interrupt polling pipe */
 /* buffer for urb ... with extra space in case of babble */
 char (*buffer)[8];
 union {
-struct usb_hub_status hub;
+struct usb__status ;
 struct usb_port_status port;
 } *status; /* buffer for status reports */
 struct mutex status_mutex; /* for the status buffer */
@@ -778,7 +778,7 @@ struct mutex status_mutex; /* for the status buffer */
 int error; /* last reported error */
 int nerrors; /* track consecutive errors */
 
-struct list_head event_list; /* hubs w/data or errs ready */
+struct list_head event_list; /* s w/data or errs ready */
 unsigned long event_bits[1]; /* status change bitmask */
 unsigned long change_bits[1]; /* ports with logical connect
 status change */
@@ -790,7 +790,7 @@ device present */
 #error event_bits[] is too short!
 #endif
 
-struct usb_hub_descriptor *descriptor; /* class descriptor */
+struct usb__descriptor *descriptor; /* class descriptor */
 struct usb_tt tt; /* Transaction Translator */
 
 unsigned mA_per_port; /* current for each child */
@@ -839,21 +839,21 @@ android_enable_function(dev, name);
 
 ================================================================================
 
-usb hub:
-usb_hub_init
-usb_register(&hub_driver)
-hub_probe
-hub_configure(hub, endpoint)
+usb :
+usb__init
+usb_register(&_driver)
+_probe
+_configure(, endpoint)
 usb_alloc_urb(0, GFP_KERNEL);
-usb_fill_int_urb(hub->urb, hdev, pipe, *hub->buffer, maxp, hub_irq,hub, endpoint->bInterval);
-hub_irq(struct urb *urb)
-kick_khubd(hub);
+usb_fill_int_urb(->urb, hdev, pipe, *->buffer, maxp, _irq,, endpoint->bInterval);
+_irq(struct urb *urb)
+kick_kd();
 
-kthread_run(hub_thread, NULL, "khubd");
-hub_events
-hub_port_status(hub, i,&portstatus, &portchange);
-hub_port_connect_change(hub, i,portstatus, portchange)
-hub_port_init(hub, udev, port1, i);
+kthread_run(_thread, NULL, "kd");
+_events
+_port_status(, i,&portstatus, &portchange);
+_port_connect_change(, i,portstatus, portchange)
+_port_init(, udev, port1, i);
 
 
 ================================================================================
@@ -915,7 +915,7 @@ mode ：1 slave
 	cat /proc/interrupts | grep kc-2-ts
 
 Android sendevent/getevent 用法：
-getevent&sendevent 是android系统下的一个工具，可以 模拟 多种按键和触屏操作，产生的是raw event，raw event经过event hub处理产生最终的gesture事件。
+getevent&sendevent 是android系统下的一个工具，可以 模拟 多种按键和触屏操作，产生的是raw event，raw event经过event 处理产生最终的gesture事件。
 这两个命令的源码在system/core/toolbox/下，sendevent.c getevent.c
 
 关于event设备的获取，在 /proc/bus/input/devices 下面：
@@ -1024,7 +1024,7 @@ USB类型信息 DeviceClass
 	#define USB_CLASS_STILL_IMAGE 6
 	#define USB_CLASS_PRINTER 7
 	#define USB_CLASS_MASS_STORAGE 8
-	#define USB_CLASS_HUB 9
+	#define USB_CLASS_ 9
 	#define USB_CLASS_CDC_DATA 0x0a
 	#define USB_CLASS_CSCID 0x0b /* chip+ smart card */
 	#define USB_CLASS_CONTENT_SEC 0x0d /* content security */
@@ -1548,7 +1548,7 @@ max96708:
 
 ================================================================================
 
-USB Hub:
+USB :
 usb84602
 usb82512
 
@@ -2262,12 +2262,12 @@ git config --global --unset https.proxy
 
 ================================================================================
 
-github的使用：
+git的使用：
 账号：qinxb1@163.com(xiaobinqin)
 密码：qinxiaobin123
 
 
-windows github配置：
+windows git配置：
 1.下载git工具
 2. 配置git
 
@@ -2278,7 +2278,7 @@ git config --global http.proxy "qinxb:N.201007034276@proxy.neusoft.com:8080"
 git config --global http.sslVerify false
 
 执行下载命令：
-git clone https://xiaobinqin:qinxiaobin123@github.com/xiaobinqin/myprojects.git
+git clone https://xiaobinqin:qinxiaobin123@git.com/xiaobinqin/myprojects.git
 
 ================================================================================
 

@@ -832,9 +832,9 @@ Audio：
 			tinyplay 1.wav
 			2.录音：
 			//mic：
-			tinycap  /data/cap1.wav -D 0 -d 1 -r 48000
+			tinycap  /data/ok-i2s2.wav -D 0 -d 1 -r 48000 -p 2048 &
 			//参考音
-			tinycap  /data/cap2.wav -D 0 -d 16 -r 48000
+			tinycap  /data/ok-i2s0.wav -D 0 -d 16 -r 48000 -p 2048 &
 			
 			
 			cat /proc/asound/card0/pcm0p/sub0/hw_params
@@ -843,7 +843,10 @@ Audio：
 			主声道设备：/dev/snd/pcmC0D0p
 			录音设备1:  /dev/snd/pcmC0D1c
 			录音设备2： /dev/snd/pcmC0D16c
-			
+		
+		3.查看寄存器状态
+			cat /sys/kernel/debug/mtksocaudio > /data/Digital.txt
+			cat /sys/kernel/debug/mtksocanaaudio > /data/Ana.txt
 ================================================================================
 
 ================================================================================
@@ -1904,14 +1907,17 @@ vendor/mediatek/proprietary/platform/mt6735/hardware/mtkcam/D1/hal/sensor
 		TP INT	：GPIO11
 		DSI INT	: GPIO125
 		
+	重启车机：
+		echo -wdout 21 0 > /sys/devices/virtual/misc/mtgpio/pin
+		
 ================================================================================
 
 E01 东软I2C配置：
 I2C总线配置：
 	I2C0：
 	I2C1：
-		UB947：0x0C
-		Touch：0x1A
+		UB947：0x0C ：12
+		Touch：0x1A	：26
 		948	:  0x2C
 		
 		DSI84：0x2D
@@ -2470,7 +2476,7 @@ Lock状态：
 ================================================================================
 	下线配置：
 	
-	AVM： 选HIGH_XXX开头的， 101配置中0字节为0x69的
+AVM： 选HIGH_XXX开头的， 101配置中0字节为0x69的
 高清RVC：选MID_XXX开头的，101配置中0字节为0x66的
 标清RVC:选MID_XXX开头的，101配置中0字节为0x67(需要手动修改)，110配置中5字节为0x00的
 
@@ -2684,6 +2690,14 @@ kdSetDriver（20001）
 
 
 ================================================================================
+背光：
+	// pull down 947 pdb
+	echo -wdout 146 0 > /sys/devices/virtual/misc/mtgpio/pin
+	sleep 1
+	echo -wdout 146 1 > /sys/devices/virtual/misc/mtgpio/pin
+
+================================================================================
+
 复位947：
 	// pull down 947 pdb
 	echo -wdout 43 0 > /sys/devices/virtual/misc/mtgpio/pin
@@ -2718,6 +2732,9 @@ kdSetDriver（20001）
 	 i2cset -f -y 0x01 0x0c 0x42 0x10
 	 sleep 0.01
 	 i2cset -f -y 0x01 0x0c 0x42 0x00
+	 
+	 
+	 
 	
 	
 	
@@ -2776,13 +2793,279 @@ DSI84：
 
 ================================================================================
 ================================================================================
+调试：
+	qinxb@PC:~/work/geely/mtk_308/kernel-3.10$ grep AEE_FIQ_STEP_KE_IPANIC_START  -rn *
+		drivers/misc/mediatek/aee/ipanic/ipanic_rom.c:460:	aee_rr_rec_fiq_step(AEE_FIQ_STEP_KE_IPANIC_START);
+		include/linux/mtk_ram_console.h:28:	AEE_FIQ_STEP_KE_IPANIC_START,
+	qinxb@PC:~/work/geely/mtk_308/kernel-3.10$ 
+
 
 ================================================================================
+USB驱动：
+
+	drivers/usb/core/usb.c:1029:	retval = usb__init();
+
+	drivers/usb/core/.c:5495:	if (usb_register(&_driver) < 0) {
+	drivers/usb/core/usb.c:1023:	retval = usb_register(&usbfs_driver);
+	
+	drivers/misc/mediatek/xhci_test/mtk-usb.h:1118:	usb_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
+	drivers/usb/core/driver.c:888:int usb_register_driver(struct usb_driver *new_driver, struct module *owner,
+	drivers/usb/core/driver.c:914:	pr_info("%s: registered new interface driver %s\n",
+
+
+	drivers/misc/mediatek/usb20/mt6735/usb20.c:1442:static int __init usb20_init(void)
+	drivers/misc/mediatek/usb20/mt6735/usb20.c:1452:fs_initcall(usb20_init);
+	
+	
+	
+	arch/arm64/boot/dts/mt6735m.dtsi:775:			compatible = "mediatek,USB0";
+	arch/arm64/boot/dts/mt6735.dtsi:943:			compatible = "mediatek,USB0";
+	arch/arm/boot/dts/mt6735m.dtsi:786:			compatible = "mediatek,USB0";
+	arch/arm/boot/dts/mt6735.dtsi:924:			compatible = "mediatek,USB0";
+	drivers/misc/mediatek/usb20/musb_core.c:189:       { .compatible = "mediatek,USB0", },
+	drivers/misc/mediatek/usb20/musb_core.c:2402:     pdev->dev.of_node = of_find_compatible_node(NULL,NULL,"mediatek,USB0");
+	drivers/misc/mediatek/usb20/mt6735/usb20.c:115:       { .compatible = "mediatek,USB0", },
+	
+USB控制器代码：	
+	drivers/misc/mediatek/usb20/musb_core.c:2401:     pr_info("musb probe\n");
+	drivers/misc/mediatek/usb20/musb_core.c:2413:    pr_info("musb probe reg: 0x%lx ,0x%lx , irq: 0x%d \n", usb_mac_base, usb_phy_base, usb_irq_number);
+	
+	drivers/misc/mediatek/usb20/musb_core.c:2084:	hcd = usb_create_hcd(&musb_hc_driver, dev, dev_name(dev));
+	
+	
+	驱动路径：
+		kernel-3.10/drivers/misc/mediatek/usb20
+	
+	SYS路径（可查看设备信息）：
+		：
+			/sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/
+		OTG：
+			/sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4
+		HOST：
+			/sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.2
+		TBOX：
+			/sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.1
+================================================================================
+U盘连接：
+<4>[   55.509483]<2>.(1)[50:kd]MTK_ICUSB [DBG], <_port_init(), 4513> 
+<4>[   55.509493]<2>.(1)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3051> .(2)[50:kd]MTK_ICUSB [DBG], <set_port_feature(), 540> 
+<4>[   55.509545]<2>.(2)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3055> .(0)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3065> 
+<4>[   55.529078]<2>.(0)[50:kd]MTK_ICUSB [DBG], <_port_wait_reset(), 2924> .(0)[50:kd]MTK_ICUSB [DBG], <_port_wait_reset(), 2926> 
+<4>[   55.529167]<2>.(0)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3077> .(2)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3080> 
+<4>[   55.589146]<2>.(2)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3082> .(2)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3125> 
+<4>[   55.589165]<2>.(2)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3129> .(2)[50:kd]MTK_ICUSB [DBG], <_port_init(), 4518> 
+<4>[   55.589178]<2>.(2)[50:kd]MTK_ICUSB [DBG], <_port_init(), 4557> <6>[   55.589193]<2>.(2)[50:kd].4: new high-speed USB device number 4 using musb-hdrc
+<4>[   55.589199]<2>.(2)[50:kd]MTK_ICUSB [DBG], <_port_init(), 4598> 
+<4>[   55.589298]<2>.(2)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3051> .(2)[50:kd]MTK_ICUSB [DBG], <set_port_feature(), 540> 
+<4>[   55.589346]<2>.(2)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3055> <3>[   55.609063]<2>.(0)[3775:BUGLY_ASYNC_UPL]<<-MFD-WARN->> Interrupt_947 Not Occurred
+<4>[   55.589353]<2>.(0)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3065> 
+<4>[   55.609180]<2>.(0)[50:kd]MTK_ICUSB [DBG], <_port_wait_reset(), 2924> .(0)[50:kd]MTK_ICUSB [DBG], <_port_wait_reset(), 2926> 
+<4>[   55.609275]<2>.(0)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3077> <5>[   55.610306]<2>.(1)[85:hps_main]CPU2: shutdown
+<4>[   55.610411]<2>.(1)[85:hps_main][WDK]cpu 2 plug off, kick wdt
+<4>[   55.611028]<2>.(1)[85:hps_main][HPS] (0200)(2)action end(74)(43)(0)(0) (4)(4)(4)(4)(1) (141)(8)(0) (1056)(8)(0) (0)(43)(8)(0)(43)
+<4>[   55.609282]<2>.(1)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3080> 
+<4>[   55.669151]<2>.(1)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3082> .(1)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3125> 
+<4>[   55.669169]<2>.(1)[50:kd]MTK_ICUSB [DBG], <_port_reset(), 3129> <4>[   55.689384]<2>.(1)[50:kd]MTK_ICUSB [DBG], <usb_new_device(), 2685> udev :ffffffc05eb38000
+<7>[   55.691882]<2>.(1)[828:HeadsetDetect][828:HeadsetDetect] exit
+<6>[   55.692082]<2>.(1)[50:kd]usb-storage 1-1.4:1.0: USB Mass Storage device detected
+<7>[   55.692285]<2>.(1)[2:kthreadd][2:kthreadd] fork [4215:kthreadd]
+<7>[   55.692366]<2>.(1)[2:kthreadd][2:kthreadd] fork [4216:kthreadd]
+<6>[   55.692396]<2>.(1)[50:kd]scsi0 : usb-storage 1-1.4:1.0
+<3>[   55.692560]<2>.(1)[50:kd][probe] drv:usb-storage dev:(null)
+<3>[   55.692569]<2>.(1)[50:kd]  s:55692061233 e:55692555694 d:494461
+<3>[   55.692629]<2>.(1)[50:kd][probe] drv:usb dev:(null)
+<3>[   55.692638]<2>.(1)[50:kd]  s:55691586848 e:55692625463 d:1038615
+<14>[   55.692811]<2>.(0)[153:ueventd]init: restorecon_recursive: /sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4
+<4>[   55.694277]<2>.(1)[1151:UsbService host]MTK_ICUSB [DBG], <usbdev_open(), 845> opened by process 1151: UsbService host
+<14>[   55.694315]<2>.(0)[153:ueventd]init: restorecon_recursive: /sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0
+<14>[   55.694575]<2>.(0)[153:ueventd]init: restorecon_recursive: /sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host0
+<14>[   55.694792]<2>.(0)[153:ueventd]init: restorecon_recursive: /sys/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host0/scsi_host/host0
+
+
+U盘断开：
+
+<4>[   73.259159]<0>.(1)[4216:usb-storage]MTK_ICUSB [DBG], <_port_init(), 4513> 
+<4>[   73.259169]<0>.(1)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3051> .(1)[4216:usb-storage]MTK_ICUSB [DBG], <set_port_feature(), 540> 
+<4>[   73.259266]<0>.(1)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3055> <7>[   73.260953]<0>.(1)[1920:wave.tboxclient][1920:wave.tboxclient] fork [4556:wave.tboxclient]
+<7>[   73.262159]<0>.(3)[4556:Thread-214][4556:Thread-214] exit
+<4>[   73.259273]<0>.(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3065> 
+<4>[   73.279185]<0>.(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_wait_reset(), 2924> .(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_wait_reset(), 2926> 
+<4>[   73.279300]<0>.(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3077> .(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3080> 
+<4>[   73.279355]<0>.(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3082> .(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3125> 
+<4>[   73.279369]<0>.(3)[4216:usb-storage]MTK_ICUSB [DBG], <_port_reset(), 3129> <6>[   73.279644]<0>.(1)[50:kd].4: USB disconnect, device number 4
+<6>[   73.299164]<0>.(2)[16:ksoftirqd/2]sd 0:0:0:0: [sda] Unhandled error code
+<6>[   73.299180]<0>.(2)[16:ksoftirqd/2]sd 0:0:0:0: [sda]  
+<4>[   73.299188]<0>.(2)[16:ksoftirqd/2]Result: hostbyte=0x01 driverbyte=0x00
+<6>[   73.299198]<0>.(2)[16:ksoftirqd/2]sd 0:0:0:0: [sda] CDB: 
+<4>[   73.279375]<0>.(2)[16:ksoftirqd/2]MTK_ICUSB [DBG], <_port_init(), 4518> 
+<4>[   73.299207]<0>.(2)[16:ksoftirqd/2]cdb[0]=0x28.(2)[16:ksoftirqd/2]: 28 00 01 52 95 40 00 00 03 00
+<3>[   73.299239]<0>.(2)[16:ksoftirqd/2]end_request: I/O error, dev sda, sector 22189376
+<3>[   73.366149]<0>.(3)[4326:sdcard]FAT-fs (sda1): FAT read failed (blocknr 10389)
+<3>[   73.366446]<0>.(3)[4326:sdcard]FAT-fs (sda1): FAT read failed (blocknr 10389)
+<3>[   73.366605]<0>.(3)[4326:sdcard]FAT-fs (sda1): FAT read failed (blocknr 10389)
+<3>[   73.367731]<0>.(3)[4325:sdcard]FAT-fs (sda1): FAT read failed (blocknr 10389)
+<14>[   73.374794]<0>.(2)[153:ueventd]init: found platform device mt_usb
+<14>[   73.376350]<0>.(2)[153:ueventd]init: found platform device mt_usb
+<7>[   73.376474]<0>.(1)[4216:usb-storage][4216:usb-storage] exit
+<4>[   73.376624]<0>.(3)[50:kd]MTK_ICUSB [DBG], <usb_disconnect(), 2294> usb_disable_device(), time spent, sec : 0, usec : 96966
+<4>[   73.376672]<0>.(3)[50:kd]MTK_ICUSB [DBG], <usb_disconnect(), 2314> usb_remove_ep_devs(), time spent, sec : 0, usec : 28
+<4>[   73.376801]<0>.(3)[50:kd]MTK_ICUSB [DBG], <usb_disconnect(), 2325> device_del(), time spent, sec : 0, usec : 118
+<4>[   73.376819]<0>.(3)[50:kd]MTK_ICUSB [DBG], <usb_disconnect(), 2349> time spent, sec : 0, usec : 97181
 
 ================================================================================
+U盘断开整理：
+现象：
+1.	B版本不存在U盘断开的问题，C板及PR板存在该问题
+2.	将947，DSI84的PDB拉低，不进行芯片配置，问题不再现 （进一步测试）
+3.	跨过 4715 问题不再现 （进一步测试）
+4.	连接TBox的情况下，问题再现率非常高
+
+
+
+
+
 
 ================================================================================
+uevent：
+USB连接：
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4},{SUBSYSTEM=usb},{MAJOR=189},{MINOR=8},{DEVNAME=bus/usb/001/009},{DEVTYPE=usb_device},{PRODUCT=781/5581/100},{TYPE=0/0/0},{BUSNUM=001},{DEVNUM=009},{SEQNUM=2237},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0},{SUBSYSTEM=usb},{DEVTYPE=usb_interface},{PRODUCT=781/5581/100},{TYPE=0/0/0},{INTERFACE=8/6/80},{MODALIAS=usb:v0781p5581d0100dc00dsc00dp00ic08isc06ip50in00},{SEQNUM=2238},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5},{SUBSYSTEM=scsi},{DEVTYPE=scsi_host},{SEQNUM=2239},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/scsi_host/host5},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/scsi_host/host5},{SUBSYSTEM=scsi_host},{SEQNUM=2240},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0},{SUBSYSTEM=scsi},{DEVTYPE=scsi_target},{SEQNUM=2241},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0},{SUBSYSTEM=scsi},{DEVTYPE=scsi_device},{MODALIAS=scsi:t-0x00},{SEQNUM=2242},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_disk/5:0:0:0},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_disk/5:0:0:0},{SUBSYSTEM=scsi_disk},{SEQNUM=2243},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_device/5:0:0:0},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_device/5:0:0:0},{SUBSYSTEM=scsi_device},{SEQNUM=2244},
+--- {add@/devices/virtual/bdi/8:32},{ACTION=add},{DEVPATH=/devices/virtual/bdi/8:32},{SUBSYSTEM=bdi},{SEQNUM=2245},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc},{SUBSYSTEM=block},{MAJOR=8},{MINOR=32},{DEVNAME=sdc},{DEVTYPE=disk},{NPARTS=1},{SEQNUM=2246},
+--- {add@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc/sdc1},{ACTION=add},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc/sdc1},{SUBSYSTEM=block},{MAJOR=8},{MINOR=33},{DEVNAME=sdc1},{DEVTYPE=partition},{PARTN=1},{SEQNUM=2247},
+--- {add@/devices/virtual/bdi/8:33-fuseblk},{ACTION=add},{DEVPATH=/devices/virtual/bdi/8:33-fuseblk},{SUBSYSTEM=bdi},{SEQNUM=2248},
+--- {add@/devices/virtual/bdi/0:31},{ACTION=add},{DEVPATH=/devices/virtual/bdi/0:31},{SUBSYSTEM=bdi},{SEQNUM=2249},
+
+USB断开：
+ --- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_device/5:0:0:0},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_device/5:0:0:0},{SUBSYSTEM=scsi_device},{SEQNUM=2250},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_disk/5:0:0:0},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/scsi_disk/5:0:0:0},{SUBSYSTEM=scsi_disk},{SEQNUM=2251},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc/sdc1},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc/sdc1},{SUBSYSTEM=block},{MAJOR=8},{MINOR=33},{DEVNAME=sdc1},{DEVTYPE=partition},{PARTN=1},{SEQNUM=2252},
+--- {remove@/devices/virtual/bdi/8:32},{ACTION=remove},{DEVPATH=/devices/virtual/bdi/8:32},{SUBSYSTEM=bdi},{SEQNUM=2253},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0/block/sdc},{SUBSYSTEM=block},{MAJOR=8},{MINOR=32},{DEVNAME=sdc},{DEVTYPE=disk},{NPARTS=0},{SEQNUM=2254},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0/5:0:0:0},{SUBSYSTEM=scsi},{DEVTYPE=scsi_device},{MODALIAS=scsi:t-0x00},{SEQNUM=2255},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/target5:0:0},{SUBSYSTEM=scsi},{DEVTYPE=scsi_target},{SEQNUM=2256},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/scsi_host/host5},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5/scsi_host/host5},{SUBSYSTEM=scsi_host},{SEQNUM=2257},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0/host5},{SUBSYSTEM=scsi},{DEVTYPE=scsi_host},{SEQNUM=2258},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4/1-1.4:1.0},{SUBSYSTEM=usb},{DEVTYPE=usb_interface},{PRODUCT=781/5581/100},{TYPE=0/0/0},{INTERFACE=8/6/80},{MODALIAS=usb:v0781p5581d0100dc00dsc00dp00ic08isc06ip50in00},{SEQNUM=2259},
+--- {remove@/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4},{ACTION=remove},{DEVPATH=/devices/platform/mt_usb/musb-hdrc.0.auto/usb1/1-1/1-1.4},{SUBSYSTEM=usb},{MAJOR=189},{MINOR=8},{DEVNAME=bus/usb/001/009},{DEVTYPE=usb_device},{PRODUCT=781/5581/100},{TYPE=0/0/0},{BUSNUM=001},{DEVNUM=009},{SEQNUM=2260},
+--- {remove@/devices/virtual/bdi/0:31},{ACTION=remove},{DEVPATH=/devices/virtual/bdi/0:31},{SUBSYSTEM=bdi},{SEQNUM=2261},
+--- {remove@/devices/virtual/bdi/8:33-fuseblk},{ACTION=remove},{DEVPATH=/devices/virtual/bdi/8:33-fuseblk},{SUBSYSTEM=bdi},{SEQNUM=2262},
 
 ================================================================================
+DSI pixclk公式如下：
+ 
+1、DSI vdo mode下的数据速率data_rate的大致计算公式为：
+	Data rate= (Height+VSA+VBP+VFP)*(Width+HSA+HBP+HFP)* total_bit_per_pixel*frame_per_second/total_lane_num
+ 
+2、DSI cmd mode下的数据速率data_rate的大致计算公式为：
+	Data rate= width*height*1.2* total_bit_per_pixel*frame_per_second/total_lane_num
 
+	其中：
+	data_rate ： 表示的是数据速率
+	width，height  ：屏幕分辨率
+	VSA VBP VFP ：DSI vdo mode的vertical porch配置参数
+	HSA HBP HFP ：DSI vdo mode的horizontal porch配置参数
+	total_bit_per_pixel ：表示的是一个pixel需要用几个bit来表示，比如RGB565的话就是16个bit
+	frame_per_second ：就是我们通常看到的fps，叫做帧率，表示每秒发送多少个帧，一般是60帧每秒
+	total_lane_num ：表示的是data lane的对数
+
+3、DSI采用的是双边采样，则clk等于数据速率的一半，因此： clk=data_rate/2
+================================================================================
+
+drivers/misc/mediatek/usb20/mt6735/usb20.c:1184:	.init		= mt_usb_init,
+drivers/misc/mediatek/usb20/mt6735/usb20.c:1110:static int mt_usb_init(struct musb *musb)
+drivers/misc/mediatek/usb20/mt6735/usb20.c:1152:    musb->isr = mt_usb_interrupt;
+drivers/misc/mediatek/usb20/mt6735/usb20.c:663:static irqreturn_t mt_usb_interrupt(int irq, void *dev_id)
+
+drivers/misc/mediatek/usb20/mt6735/usb20.c:679:		if((tmp_status = generic_interrupt(irq, musb)) != IRQ_NONE)
+drivers/misc/mediatek/usb20/mt6735/usb20.c:623:static irqreturn_t generic_interrupt(int irq, void *__hci)
+
+drivers/misc/mediatek/usb20/mt6735/usb20.c:655:		retval = musb_interrupt(musb);
+
+drivers/misc/mediatek/usb20/musb_core.c:1800:irqreturn_t musb_interrupt(struct musb *musb)
+drivers/misc/mediatek/usb20/musb_core.c:1913:					musb_host_tx(musb, epnum);
+drivers/misc/mediatek/usb20/musb_host.c:1549:void musb_host_tx(struct musb *musb, u8 epnum)
+drivers/misc/mediatek/usb20/musb_host.c:1581:		musb_advance_schedule(musb, (struct urb *)QH_FREE_RESCUE_INTERRUPT, hw_ep, USB_DIR_OUT);
+drivers/misc/mediatek/usb20/musb_host.c:502:void musb_advance_schedule(struct musb *musb, struct urb *urb,
+
+drivers/misc/mediatek/usb20/musb_host.c:654:		musb_start_urb(musb, is_in, qh);
+drivers/misc/mediatek/usb20/musb_host.c:331:musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
+
+drivers/misc/mediatek/usb20/musb_host.c:389:	musb_ep_program(musb, epnum, urb, !is_in, buf, offset, len);
+drivers/misc/mediatek/usb20/musb_host.c:237:static void musb_ep_program(struct musb *musb, u8 epnum,
+
+drivers/misc/mediatek/usb20/musb_host.c:1235:				ret = dma_controller->channel_program(
+
+drivers/misc/mediatek/usb20/musbhsdma.c:496:	controller->controller.channel_program = dma_channel_program;
+drivers/misc/mediatek/usb20/musbhsdma.c:178:static int dma_channel_program(struct dma_channel *channel,
+
+
+
+
+
+
+
+================================================================================
+USB ：
+
+BF803100：低位00 表示port0 normal
+BF803101：
+BF803194：
+BF803197：
+
+
+================================================================================
+仪表：
+
+下面的修改请提交到gerrit吧：
+
+1.	drivers/misc/mediatek/lcm/h070d_18dm/h070d_18dm.c
+#define HSYNC_PULSE_WIDTH 24
+#define HSYNC_BACK_PORCH  104
+#define HSYNC_FRONT_PORCH 24
+#define VSYNC_PULSE_WIDTH 5
+#define VSYNC_BACK_PORCH  4
+#define VSYNC_FRONT_PORCH 4
+
+2.	drivers/misc/mediatek/dispsys/mt6735/ddp_dpi.c
+         default:
+         {
+                        clksrc = 4;
+-                       prediv = 0x81109D89;//50M 0x800f8000
++                       //prediv = 0x81109D89;//50M 0x800f8000
++                       prediv = 0x810E9D89;//47M
+             pr_err("DISP/DPI,unknown clock frequency: %d \n", clk_req);
+             break;
+         }
+
+================================================================================
+DPI DSI加载过程：
+mtkfb.c -> primary_display.c -> ddp_manager.c  -> ddp_info.c -> （DPI或DSI）
+ddp_dsi.c
+ddp_dpi.c
+
+================================================================================
+陀螺仪：
+
+总线地址为：0x00
+设备地址：0x68
+
+获取芯片ID：
+	i2cget -f -y 0x00 0x00
+
+包含两个模块：
+	1.	加速器模块
+	2.	陀螺仪模块
+
+	
+
+
+================================================================================
+================================================================================
 ================================================================================

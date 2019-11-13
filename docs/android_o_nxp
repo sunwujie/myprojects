@@ -109,7 +109,7 @@ GE12烧写步骤如下：
        1上2下：烧写模式
        1下2上：正常启动模式
 
-4.    烧写口必须使用蓝色的OTG口，必须使用usb hub连接电脑与车机
+4.    烧写口必须使用蓝色的OTG口，必须使用usb 连接电脑与车机
 
 5.    开始烧写，运行下述工具
        ok_android_o8.1.0_1.2.0_8qxp-beta2_tools\mfgtools/fgtool2-android-mx8qxp-mek-emmc.vbs
@@ -276,9 +276,9 @@ scfw: system control firmware (系统控制固件)
 =======================================================================================
 USB相关：
 
-HUB HOST 82512 ：
+ HOST 82512 ：
 	驱动作用：IMX6仅仅配置相关寄存器，IMX8无需软件控制
-	芯片作用：HUB作用，将HOST口扩展为用户usb口及TBox口
+	芯片作用：作用，将HOST口扩展为用户usb口及TBox口
 
 2549充电端口控制器：		   ：
 	驱动名称：usb_protect.c
@@ -846,6 +846,7 @@ ldb：
 			clock-frequency = <100000>;
 			status = "okay";
 
+			lvds-to-lvds-bridge@0c {
 			lvds-to-lvds-bridge@0c {
 				compatible = "ti,ds90ub947";
 				reg = <0x0c>;
