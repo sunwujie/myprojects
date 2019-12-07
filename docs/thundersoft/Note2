@@ -1,0 +1,336 @@
+=============================================================================
+ubuntu安装微信：
+https://gitee.com/wszqkzqk/deepin-wine-for-ubuntu
+
+下载最新版本的微信即可
+=============================================================================
+安装irtualbox：
+如果在开机的BIOS页面中设置了secure key option enable的话，内核只允许安装特定key签名的模块。现在有两种解决方法，以就是生成一对签名，然后加到内核中，这种方法有点麻烦，有需要的可以各自找他人的参考一下。第二种就是在BIOS页面把那个secure key option给diabled掉，这样就可以不用添加签名就将模块装载了。最后就可以成功运行VirtualBox了。
+————————————————
+版权声明：本文为CSDN博主「希明人」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/ximingren/article/details/79200828
+=============================================================================
+SVN:
+帐号：
+	qinxb1202@thundersoft.com
+密码：
+	11QQ22qq
+
+URL:
+http://192.168.9.128:8000/svn2/Yenisei
+
+Gerrit:
+http://dev.thundercomm.com/gerrit/#/q/status:open
+
+WIKI:
+http://192.168.9.9:32768/wiki/index.php/Yenisei
+
+Code:
+626：
+
+Android：
+#repo init -u ssh://<user>@dev.thundercomm.com:29418/general/manifest -b yenisei-la-2.0.2-sdm626-p-dev
+#repo sync -c -j4 --no-tags
+
+build:
+#cd LINUX/android/
+#source build/envsetup.sh 
+#lunch msm8953_64-userdebug 
+#make -j4
+
+
+
+845：
+
+Android：
+#repo init -u ssh://<user>@dev.thundercomm.com:29418/general/manifest -b yenisei-la-1.0.1-sdm845-p-dev
+#repo sync -c -j4 --no-tags
+
+
+#cd LINUX/android/ 
+#source build/envsetup.sh 
+#lunch sdm845-userdebug 
+#make -j4
+
+
+Camera App：
+
+repo sync -c --no-tags
+
+=============================================================================
+
+编译kernel及uboot的mk：
+	device/qcom/msm8953_64/AndroidBoard.mk
+		TARGET_NO_BOOTLOADER
+			include bootable/bootloader/lk/AndroidBoot.mk
+		TARGET_KERNEL_SOURCE := kernel
+			include $(TARGET_KERNEL_SOURCE)/AndroidKernel.mk
+			
+deconfig:
+	user:
+		arch/arm64/configs/msmcortex-perf_defconfig
+	
+	eng/debug
+		arch/arm64/configs/msmcortex_defconfig
+
+DTS:
+	CONFIG_ARCH_MSM8953=y
+	
+	Linux DTS(Device Tree Source)设备树详解之三
+	https://blog.csdn.net/radianceblau/article/details/76574727
+	
+	
+	main dts:
+		arch/arm/boot/dts/qcom/apq8053-turbox625la.dts
+		
+		两个设备节点：
+				1.
+					compatible = "qcom,apq8053-mtp", "qcom,apq8053", "qcom,mtp";
+					arch/arm/mach-msm/board-8953.c:20:	"qcom,apq8053",
+					
+				2.
+					compatible = "gpio_ctrl";
+					drivers/misc/gpio_ctrl.c:154:		.name = "gpio_ctrl",
+	
+	include:
+		#include "apq8053.dtsi"
+			arch/arm/boot/dts/qcom/msm8953.dtsi
+				arch/arm/boot/dts/qcom/msm8953-regulator.dtsi
+				
+		#include "msm8953-mtp.dtsi"
+			包括Camera及Display等设备节点及GPIO
+	
+
+	
+	arch/arm/boot/dts/qcom/Makefile:236:dtb-$(CONFIG_ARCH_MSM8953) += msm8953-sim.dtb
+	
+	dtb-$(CONFIG_ARCH_MSM8953) += msm8953-sim.dtb \
+        msm8953-rumi.dtb \
+        msm8953-cdp.dtb \
+        msm8953-mtp.dtb \
+        msm8953-ext-codec-mtp.dtb \
+        msm8953-qrd-sku3.dtb \
+        msm8953-rcm.dtb \
+        apq8053-rcm.dtb \
+        msm8953-ext-codec-rcm.dtb \
+        apq8053-cdp.dtb \
+        apq8053-ipc.dtb \
+        msm8953-ipc.dtb \
+        apq8053-turbox625la.dtb \
+        apq8053-ext-audio-mtp.dtb \
+        apq8053-ext-codec-rcm.dtb \
+        msm8953-cdp-1200p.dtb \
+        msm8953-iot-mtp.dtb \
+        apq8053-iot-mtp.dtb
+
+
+
+Driver files:
+
+SPI Driver:
+	// Ethernet
+	drivers/net/ethernet/micrel/ks8851.c
+	
+	DTS:
+	arch/arm/boot/dts/qcom/msm8953.dtsi:709:			compatible = "micrel,ks8851";
+	
+	Driver:
+	drivers/net/ethernet/micrel/ks8851.c:1797:	{ .compatible = "micrel,ks8851" },
+
+
+USB：
+	arch/arm/boot/dts/qcom/msm8953.dtsi:2253:		compatible = "qcom,qusb2phy";
+	drivers/usb/phy/phy-msm-qusb.c:1385:	{ .compatible = "qcom,qusb2phy", },
+
+
+
+Regulator:
+	arch/arm/boot/dts/qcom/msm8953-regulator.dtsi:181:		pm8953_l7: regulator-l7 {
+	
+	
+HDMI chip:
+	DSI1
+	LT8912B（龙迅Lontium） : MIPI DSI to LVDS/HDMI/MHL
+	
+LCM:
+	ASE5S2410(skyworks:贸泽电子)
+
+SPC：
+	connector：CSI-CSI；DSI-DSI
+	AXE530127D	
+	
+USB：
+	HD3SS6126：USB switch开关（可选择后端输出port）
+	cyusb3304：USB HUB
+
+
+LED:
+	SN3193:呼吸灯
+	
+	datasheet：
+	https://wenku.baidu.com/view/e449c5553b3567ec102d8a09.html
+	
+	驱动：
+	https://blog.csdn.net/zhenwenxian/article/details/8495356
+
+Ehternet:
+	KSZ8851SNL-TR:Ethernet chip
+	H5084NL:网卡控制器
+		https://wenku.baidu.com/view/7fcfd2ddb9f3f90f76c61bd2.html
+
+UartToUSB:
+	FT230XQ:
+
+陀螺仪:
+	MPU6500
+
+=============================================================================
+Camera ADSP:
+
+Kernel DTS:
+	kernel/msm-3.18/arch/arm64/boot/dts/qcom/
+
+Hal:
+	
+
+Vendor code:
+	vendor/qcom/proprietary/mm-camera/mm-camera2/media-controller/modules/sensors
+
+
+
+LK:
+	app/aboot/aboot.c
+
+=============================================================================
+
+USB3Vision:
+官方文档：
+https://www.visiononline.org/mvo-content.cfm?id=206
+
+
+
+=============================================================================
+高通：
+sdm845
+
+sdm626
+
+=============================================================================
+        在配置静态IP时，不同办公区域的同学要配置不同的参数
+        在1605的同学网络配置参数：
+        IP地址：192.168.112.xx
+        子网掩码：255.255.255.0
+        网关：192.168.112.1
+        DNS服务器：202.96.64.68
+                             202.96.69.38
+
+        在1603的同学网络配置参数：
+        IP地址：192.168.114.xx
+        子网掩码：255.255.255.0
+        网关：192.168.114.1
+        DNS服务器：202.96.64.68
+                             202.96.69.38
+
+        在1606的同学网络配置参数：
+        IP地址：192.168.115.xx
+        子网掩码：255.255.255.0
+        网关：192.168.115.1
+        DNS服务器：202.96.64.68
+                             202.96.69.38
+
+
+=============================================================================
+GPIO相关操作：
+
+	arch/arm/boot/dts/qcom/msm8953-regulator.dtsi
+		spi_eth_1v8: spi_eth_1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "ethernet_1v8";
+		gpio = <&tlmm 48 0>;
+		enable-active-high;
+	      };
+
+		spi_eth_3v3: spi_eth_3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "ethernet_3v3";
+		gpio = <&tlmm 95 0>;
+		enable-active-high;
+	      };
+
+	msm-3.18/arch/arm/boot/dts/qcom/msm8953.dtsi
+
+			ethernet@0 {
+			status = "okay";
+			compatible = "micrel,ks8851";
+			reg = <0>;
+			interrupt-parent = <&tlmm>;
+			interrupts = <46 0>;
+			reset-gpios = <&tlmm 47 0>;
+			vdd-supply = <&spi_eth_3v3>;
+			vdd-io-supply = <&spi_eth_1v8>;
+			spi-max-frequency = <25000000>;
+		};
+
+	drivers/net/ethernet/micrel/ks8851.c
+		int gpio;
+		gpio = of_get_named_gpio_flags(spi->dev.of_node, "reset-gpios",0, NULL);
+		if (！gpio_is_valid(gpio)) {
+			pr_debug("Eorror\n");
+		}
+		ret = devm_gpio_request_one(&spi->dev, gpio,GPIOF_OUT_INIT_LOW, "ks8851_rst_n");
+		ret = gpio_direction_output(gpio, 0x1);
+
+	
+regulator:
+		ks->vdd_io = devm_regulator_get(&spi->dev, "vdd-io");
+		if (IS_ERR(ks->vdd_io)) {
+			ret = PTR_ERR(ks->vdd_io);
+		}
+		ret = regulator_enable(ks->vdd_io);
+		if (ret) {
+			dev_err(&spi->dev, "regulator vdd_io enable fail: %d\n",
+				ret);
+		}
+		regulator_disable(priv->vdd_reg);
+
+pintrol:
+	arch/arm/boot/dts/qcom/msm8953-pinctrl.dtsi
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
