@@ -201,6 +201,7 @@ Vendor code:
 LK:
 	app/aboot/aboot.c
 
+
 =============================================================================
 
 USB3Vision:
@@ -241,6 +242,25 @@ sdm626
 
 =============================================================================
 GPIO相关操作：
+
+	*******
+	原文链接：https://blog.csdn.net/s_jason/article/details/73864103
+	*******
+	
+	调试方法：
+		1、获取gpio状态
+	        cd /sys/kernel/debug/
+	        cat gpio
+	2、操作gpio（以gpio99为例）
+	        cd /sys/class/gpio/
+	        echo 99 > export
+	        cd gpio99
+	        echo in/out > direction    //设置gpio输入或输出
+	        cat direction                    //获取gpio输入输出状态
+	        echo 'value' > value        //设置gpio寄存器值
+	        cat value                        //获取gpio寄存器的值
+
+	
 
 	arch/arm/boot/dts/qcom/msm8953-regulator.dtsi
 		spi_eth_1v8: spi_eth_1v8 {
@@ -296,6 +316,33 @@ regulator:
 pintrol:
 	arch/arm/boot/dts/qcom/msm8953-pinctrl.dtsi
 =============================================================================
+高通：
+	高通 MSM8K bootloader 之一： SBL1
+	https://blog.csdn.net/Fybon/article/details/18185441
+	https://blog.csdn.net/Fybon/article/details/37565227
+	
+	高通 MSM8K bootloader 之四： ramdump
+	https://blog.csdn.net/Fybon/article/details/39158087
+
+	Android for MSM Project
+	https://blog.csdn.net/Fybon/article/details/70258559
+	
+	linux驱动由浅入深系列：块设备驱动之一（高通eMMC分区实例）
+	https://blog.csdn.net/RadianceBlau/article/details/72956127
+	
+	高通kernel顶层目录下的AndroidKernel.mk文件
+	https://blog.csdn.net/daoshuti/article/details/72667464
+	
+	
+DTS相关资料：
+	https://blog.csdn.net/radianceblau/article/details/70800076
+	
+Linux Driver专栏：（高通平台）
+	https://blog.csdn.net/radianceblau/category_6705724.html
+	
+	
+	
+
 =============================================================================
 =============================================================================
 =============================================================================
