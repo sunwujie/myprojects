@@ -31,6 +31,7 @@ Code:
 Android：
 #repo init -u ssh://<user>@dev.thundercomm.com:29418/general/manifest -b yenisei-la-2.0.2-sdm626-p-dev
 #repo sync -c -j4 --no-tags
+# repo sync -c -j4;while [ $? -ne 0 ];do repo sync -c -j8 ;done
 
 build:
 #cd LINUX/android/
@@ -72,6 +73,8 @@ deconfig:
 	
 	eng/debug
 		arch/arm64/configs/msmcortex_defconfig
+		
+	make ARCH=arm64 menuconfig
 
 DTS:
 	CONFIG_ARCH_MSM8953=y
@@ -163,7 +166,10 @@ USB：
 	HD3SS6126：USB switch开关（可选择后端输出port）
 	cyusb3304：USB HUB
 
-
+HDMI:
+	EDID
+	https://blog.csdn.net/flaoter/article/details/73252240
+	
 LED:
 	SN3193:呼吸灯
 	
@@ -175,6 +181,7 @@ LED:
 
 Ehternet:
 	KSZ8851SNL-TR:Ethernet chip
+	AX88179：USB网卡
 	H5084NL:网卡控制器
 		https://wenku.baidu.com/view/7fcfd2ddb9f3f90f76c61bd2.html
 
@@ -315,6 +322,8 @@ regulator:
 
 pintrol:
 	arch/arm/boot/dts/qcom/msm8953-pinctrl.dtsi
+	drivers/pinctrl/qcom/pinctrl-msm8953.c
+
 =============================================================================
 高通：
 	高通 MSM8K bootloader 之一： SBL1
@@ -341,9 +350,19 @@ Linux Driver专栏：（高通平台）
 	https://blog.csdn.net/radianceblau/category_6705724.html
 	
 	
-	
+=============================================================================
+Gerrit:
+	http://dev.thundercomm.com/gerrit/#/q/status:open
+	高翔：
+	gaoxiang1026
+	ThunderSoft@88
 
 =============================================================================
+BSP: 秦晓彬，白晓东，刘洋，姚长辉，高朝春，唐金泽，刘彦斌
+Andorid App：马思远 张胜旺 吴中伟
+PC App：陈兆第 姜先达 刘泳江
+
+
 =============================================================================
 =============================================================================
 =============================================================================
