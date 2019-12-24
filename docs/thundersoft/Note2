@@ -29,9 +29,16 @@ Code:
 626：
 
 Android：
-#repo init -u ssh://<user>@dev.thundercomm.com:29418/general/manifest -b yenisei-la-2.0.2-sdm626-p-dev
+#repo init -u ssh://qinxb1202@dev.thundercomm.com:29418/general/manifest -b yenisei-la-2.0.2-sdm626-p-dev
 #repo sync -c -j4 --no-tags
 # repo sync -c -j4;while [ $? -ne 0 ];do repo sync -c -j8 ;done
+
+
+step2. 北京gerrit:
+repo init -u  ssh://<user>@dev.thundercomm.com:29418/general/manifest -b sparkle-la-7.1-sdm626-p-dev
+repo sync -c -j4 --no-tags
+
+
 
 build:
 #cd LINUX/android/
@@ -44,7 +51,7 @@ build:
 845：
 
 Android：
-#repo init -u ssh://<user>@dev.thundercomm.com:29418/general/manifest -b yenisei-la-1.0.1-sdm845-p-dev
+#repo init -u ssh://qinxb1202@dev.thundercomm.com:29418/general/manifest -b yenisei-la-1.0.1-sdm845-p-dev
 #repo sync -c -j4 --no-tags
 
 
@@ -75,6 +82,12 @@ deconfig:
 		arch/arm64/configs/msmcortex_defconfig
 		
 	make ARCH=arm64 menuconfig
+	
+	差分：
+	./scripts/diffconfig arch/arm64/configs/msmcortex_defconfig arch/arm64/configs/msmcortex-perf_defconfig
+	
+	merge:
+	merge_config.sh
 
 DTS:
 	CONFIG_ARCH_MSM8953=y
@@ -181,7 +194,7 @@ LED:
 
 Ehternet:
 	KSZ8851SNL-TR:Ethernet chip
-	AX88179：USB网卡
+	AX88179：USB转网卡
 	H5084NL:网卡控制器
 		https://wenku.baidu.com/view/7fcfd2ddb9f3f90f76c61bd2.html
 
@@ -268,6 +281,8 @@ GPIO相关操作：
 	        cat value                        //获取gpio寄存器的值
 
 	
+	高通GPIO计算方法，如何通过原理图确认GPIO
+	
 
 	arch/arm/boot/dts/qcom/msm8953-regulator.dtsi
 		spi_eth_1v8: spi_eth_1v8 {
@@ -307,6 +322,33 @@ GPIO相关操作：
 		ret = devm_gpio_request_one(&spi->dev, gpio,GPIOF_OUT_INIT_LOW, "ks8851_rst_n");
 		ret = gpio_direction_output(gpio, 0x1);
 
+
+// Test
+        if(of_get_property(np, "net-switch-reset", NULL)) {
+                pdata->net_switch_reset = of_get_named_gpio(np, "net-switch-reset", 0);
+                if(!gpio_is_valid(pdata->net_switch_reset)) {
+                        dev_err(dev, "get net-switch-reset failed\n");
+                        goto err_gpio;
+                }
+
+                ret = gpio_request(pdata->net_switch_reset, "net-switch-reset");
+                if(ret) {
+                        dev_err(dev, "request net-switch-reset failed\n");
+                        goto err_gpio;
+                }
+
+                ret = gpio_direction_output(pdata->net_switch_reset, 0);
+                if(ret) {
+                        dev_err(dev, "set direction net-switch-reset failed\n");
+                        goto err_gpio;
+                }
+				
+				 if(gpio_is_valid(pdata->net_switch_reset)) {
+                        printk("logan test --- %s --- %d\n", __func__, __LINE__);
+                        gpio_set_value(pdata->net_switch_reset, 0);
+                }
+        }
+
 	
 regulator:
 		ks->vdd_io = devm_regulator_get(&spi->dev, "vdd-io");
@@ -323,6 +365,15 @@ regulator:
 pintrol:
 	arch/arm/boot/dts/qcom/msm8953-pinctrl.dtsi
 	drivers/pinctrl/qcom/pinctrl-msm8953.c
+	
+	
+PMIC GPIO:
+	arch/arm/boot/dts/qcom/msm8953.dtsi:135:#include "msm8953-smp2p.dtsi"
+	arch/arm/boot/dts/qcom/msm8953-smp2p.dtsi
+
+pmi8953 gpio:
+	arch/arm/boot/dts/qcom/msm-pm8953.dtsi:106:			label = "pm8953-gpio";
+
 
 =============================================================================
 高通：
@@ -364,20 +415,365 @@ PC App：陈兆第 姜先达 刘泳江
 
 
 =============================================================================
+USB:
+[init.svc.qcom-usb-sh]: [stopped]
+[persist.sys.usb.config]: [diag,serial_smd,rmnet_ipa,adb]
+[persist.sys.usb.config.extra]: [none]
+[ro.sys.usb.default.config]: [diag,serial_smd,rmnet_ipa,adb]
+[sys.usb.config]: [diag,serial_smd,rmnet_ipa,adb]
+[sys.usb.configfs]: [0]
+[sys.usb.ffs.ready]: [1]
+[sys.usb.rps_mask]: [0]
+[sys.usb.state]: [diag,serial_smd,rmnet_ipa,adb]
+
+sys.usb.config=diag,serial_smd,rmnet_bam 	
+
+
+device/qcom/common/rootdir/etc/init.qcom.usb.sh
+device/qcom/common/rootdir/etc/init.qcom.usb.rc
+
+persist.sys.usb.config=diag,serial_smd,rmnet_ipa,adb
+ro.sys.usb.default.config=diag,serial_smd,rmnet_ipa,adb
+
+setprop sys.usb.config diag,serial_smd,rmnet_ipa
+
+
+/sys/devices/soc/79000.qusb
+
+
+USB hub path:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1
+
+USB1:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1
+
+USB2:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.2
+	
+USB3:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.3
+
+Ethernet:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.4
+
 =============================================================================
+
+#!/bin/sh
+adb root
+adb reboot bootloader
+#fastboot flash aboot aboot.mbn
+fastboot flash boot boot.img
+fastboot flash system system.img
+fastboot flash userdata userdata.img
+fastboot flash recovery recovery.img
+fastboot flash persist persist.img
+fastboot reboot
+
+
 =============================================================================
+
+ PM: Some devices failed to suspend, or early wake event detected
+[ 1456.823990] PM: resume of devices complete after 1.057 msecs
+[ 1456.859934] PM: Finishing wakeup.
+[ 1456.863130] Restarting tasks ... done.
+[ 1456.885756] Abort: Some devices failed to suspend, or early wake event detected
+[ 1456.892217] PM: suspend exit 1970-01-02 07:58:27.736923199 UTC
+[ 1457.000753] PM: suspend entry 1970-01-02 07:58:27.845445386 UTC
+[ 1457.005661] PM: Syncing filesystems ... done.
+[ 1457.025234] PM: Preparing system for mem sleep
+[ 1457.031939] Freezing user space processes ... (elapsed 0.017 seconds) done.
+[ 1457.054350] Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+[ 1457.067089] PM: Entering mem sleep
+[ 1457.070581] Suspending console(s) (use no_console_suspend to debug)
+[ 1457.082946] msm-dwc3 7000000.ssusb: Abort PM suspend!! (USB is outside LPM)
+[ 1457.082982] dpm_run_callback(): platform_pm_suspend+0x0/0x50 returns -16
+[ 1457.083001] PM: Device 7000000.ssusb failed to suspend: error -16
+[ 1457.083012] PM: Some devices failed to suspend, or early wake event detected
+[ 1457.084589] PM: resume of devices complete after 1.557 msecs
+[ 1457.120507] PM: Finishing wakeup.
+[ 1457.123692] Restarting tasks ... done.
+[ 1457.147590] Abort: Some devices failed to suspend, or early wake event detected
+[ 1457.154081] PM: suspend exit 1970-01-02 07:58:27.998786219 UTC
+[ 1457.261124] PM: suspend entry 1970-01-02 07:58:28.105817469 UTC
+[ 1457.266030] PM: Syncing filesystems ... done.
+[ 1457.283420] PM: Preparing system for mem sleep
+[ 1457.290311] Freezing user space processes ... (elapsed 0.017 seconds) done.
+[ 1457.312969] Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+[ 1457.325932] PM: Entering mem sleep
+[ 1457.329492] Suspending console(s) (use no_console_suspend to debug)
+[ 1457.341801] msm-dwc3 7000000.ssusb: Abort PM suspend!! (USB is outside LPM)
+[ 1457.341837] dpm_run_callback(): platform_pm_suspend+0x0/0x50 returns -16
+[ 1457.341855] PM: Device 7000000.ssusb failed to suspend: error -16
+[ 1457.341866] PM: Some devices failed to suspend, or early wake event detected
+
+
+
+[  197.684062] wcd9335-slim tasha-slim-pgd: wcd9xxx_slim_probe: codec type is 2
+[  197.858411] wcd9xxx_slim_probe: failed to get slimbus tasha-slim-pgd logical address: -6
+[  200.109184] usb 2-1.2: USB disconnect, device number 3
+[  201.942766] msm-dwc3 7000000.ssusb: DWC3 in low power mode
+[  206.175498] PM: suspend entry 1970-01-01 05:01:50.006882113 UTC
+[  206.180795] PM: Syncing filesystems ... done.
+[  206.209912] PM: Preparing system for mem sleep
+[  206.247012] Freezing user space processes ... 
+[  206.256834] Error: returning -512 value
+[  206.271014] PM: Wakeup pending, aborting suspend
+[  206.274622] active wakeup source: PowerManagerService.WakeLocks
+[  206.280783] 
+[  206.281994] Freezing of tasks aborted after 0.030 seconds
+[  206.287373] Restarting tasks ... done.
+[  206.313520] Abort: Pending Wakeup Sources: PowerManagerService.WakeLocks 
+[  206.319450] PM: suspend exit 1970-01-01 05:01:50.150854977 UTC
+[  206.426915] PM: suspend entry 1970-01-01 05:01:50.258308779 UTC
+[  206.431935] PM: Syncing filesystems ... done.
+[  206.451326] PM: Preparing system for mem sleep
+[  206.457944] Freezing user space processes ... 
+[  206.467884] Error: returning -512 value
+[  206.486574] (elapsed 0.024 seconds) done.
+[  206.489558] Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+[  206.502777] PM: Entering mem sleep
+[  206.506152] Suspending console(s) (use no_console_suspend to debug)
+[  206.519680] PM: Wakeup pending, aborting suspend
+[  206.519695] active wakeup source: event3
+[  206.519873] PM: Some devices failed to suspend, or early wake event detected
+[  206.521856] PM: resume of devices complete after 1.965 msecs
+[  206.546498] PM: Finishing wakeup.
+[  206.549920] Restarting tasks ... done.
+[  206.580920] Abort: Pending Wakeup Sources: event3 
+[  206.584892] PM: suspend exit 1970-01-01 05:01:50.416292790 UTC
+[  206.692955] PM: suspend entry 1970-01-01 05:01:50.524336175 UTC
+[  206.698519] PM: Syncing filesystems ... done.
+[  206.723786] PM: Preparing system for mem sleep
+[  206.731033] Freezing user space processes ... 
+[  206.740791] Error: returning -512 value
+[  206.759204] (elapsed 0.024 seconds) done.
+[  206.762192] Freezing remaining freezable tasks ... (elapsed 0.012 seconds) done.
+[  206.780564] PM: Entering mem sleep
+[  206.783940] Suspending console(s) (use no_console_suspend to debug)
+
+
+
+网络启动耗时：
+msm8953_64:/mnt/media_rw # 
+msm8953_64:/mnt/media_rw # 
+msm8953_64:/mnt/media_rw # [   97.502378] init: Service 'adbd' is being killed...
+[   97.506628] Error: returning -512 value
+[   97.506852] dwc3 7000000.dwc3: request 0000000000000000 was not queued to ep0out
+[   97.518926] init: Service 'adbd' (pid 658) killed by signal 9
+[   97.523647] init: Service 'adbd' (pid 658) killing any children in process group
+[   97.553144] enable_store: android_usb: already disabled
+[   97.558311] init: Starting service 'adbd'...
+
+
+
 =============================================================================
+845线路图发现的问题：
+1.
+
+
+
 =============================================================================
+
+http://jira.abilitycorp.com.tw:8081/
+Abilitycorp JIRA
+JIRA is the project tracker for teams building great software. Log in now to track your issues and tasks, collaborate with your team, and stay on top of project activity.
+Username:	Qin Xiaobin thundersoft
+Email:	qinxb1202@thundersoft.com
+Full Name:	Qin Xiaobin thundersoft
+Get started by setting your own password and logging in.
+
+用户名：Qin Xiaobin thundersoft
+密码：11QQ22qq
+
+
 =============================================================================
+Button keys:
+	drivers/input/misc/soc_button_array.c
+	./include/linux/gpio_keys.h
+	./drivers/input/keyboard/gpio_keys.c
+
+
+
 =============================================================================
+按键进入烧写模式：
+1. 不连接adb显示
+
+佳能企业股份有限公司
+
 =============================================================================
+pinctrol:
+	定义：
+		drivers/pinctrl/qcom/pinctrl-msm8953.c:1255:	FUNCTION(blsp_uart2),
+	使用：
+		arch/arm/boot/dts/qcom/msm8953-pinctrl.dtsi
+		arch/arm/boot/dts/qcom/msm8953.dtsi
+
+
+
+
+
 =============================================================================
+Audio:
+	sound/soc/msm/msm8952.c:3282:	{ .compatible = "qcom,msm8952-audio-codec", },
+
+
+
 =============================================================================
+USB进入休眠模式：
+
+msm8953_64:/ # 
+msm8953_64:/ # 
+msm8953_64:/  2442.914869] msm-dwc3 7000000.ssusb: DWC3 in low power mode
+[ 2442.915870] PM: suspend entry 1970-01-01 05:16:43.669328691 UTC
+[ 2442.958419] PM: Syncing filesystems ... done.
+[ 2442.961775] PM: Preparing system for mem sleep
+[ 2442.991475] Freezing user space processes ... 
+[ 2443.002454] Error: returning -512 value
+[ 2443.016480] PM: Wakeup pending, aborting suspend
+[ 2443.020363] last active wakeup source: eventpoll
+[ 2443.024694] 
+[ 2443.026152] Freezing of tasks aborted after 0.029 seconds
+[ 2443.031534] Restarting tasks ... done.
+[ 2443.055818] Abort: Last active Wakeup Source: eventpoll
+[ 2443.060443] PM: suspend exit 1970-01-01 05:16:43.813909316 UTC
+
+msm8953_64:/ # [ 2443.166943] PM: suspend entry 1970-01-01 05:16:43.920395566 UTC
+[ 2443.172023] PM: Syncing filesystems ... done.
+[ 2443.194931] PM: Preparing system for mem sleep
+[ 2443.202150] Freezing user space processes ... 
+[ 2443.214701] Error: returning -512 value
+[ 2443.229351] PM: Wakeup pending, aborting suspend
+[ 2443.233089] last active wakeup source: qpnp_fg_update_sram
+[ 2443.238723] 
+[ 2443.239890] Freezing of tasks aborted after 0.033 seconds
+[ 2443.245271] Restarting tasks ... done.
+[ 2443.270212] Abort: Last active Wakeup Source: qpnp_fg_update_sram
+
+[ 2443.275295] PM: suspend exit 1970-01-01 05:16:44.028760722 UTC
+msm8953_64:/ # [ 2443.382698] PM: suspend entry 1970-01-01 05:16:44.136149420 UTC
+[ 2443.387609] PM: Syncing filesystems ... done.
+[ 2443.426504] PM: Preparing system for mem sleep
+[ 2443.434421] Freezing user space processes ... 
+[ 2443.444420] Error: returning -512 value
+[ 2443.461372] (elapsed 0.023 seconds) done.
+[ 2443.464352] Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+[ 2443.477417] PM: Entering mem sleep
+[ 2443.480945] Suspending console(s) (use no_console_suspend to debug)
+[ 2443.493844] PM: Wakeup pending, aborting suspend
+[ 2443.493860] active wakeup source: event3
+[ 2443.494013] PM: Some devices failed to suspend, or early wake event detected
+[ 2443.495224] PM: resume of devices complete after 1.193 msecs
+[ 2443.520141] PM: Finishing wakeup.
+[ 2443.523294] Restarting tasks ... done.
+[ 2443.553703] Abort: Pending Wakeup Sources: event3 
+[ 2443.557624] PM: suspend exit 1970-01-01 05:16:44.311087024 UTC
+[ 2443.664961] PM: suspend entry 1970-01-01 05:16:44.418413326 UTC
+[ 2443.670227] PM: Syncing filesystems ... done.
+[ 2443.695662] PM: Preparing system for mem sleepmsmcortex-perf_defconfig
+[ 2443.702490] Freezing user space processes ... 
+[ 2443.712964] Error: returning -512 value
+[ 2443.729549] (elapsed 0.023 seconds) done.
+[ 2443.732532] Freezing remaining freezable tasks ... (elapsed 0.017 seconds) done.
+[ 2443.756540] PM: Entering mem sleep
+[ 2443.760200] Suspending console(s) (use no_console_suspend to debug)
+
+
+=============================================================================de
+
+
+bringup code:
+http://dev.thundercomm.com/gerrit/#/c/21615/
+http://dev.thundercomm.com/gerrit/#/c/21691/
+http://dev.thundercomm.com/gerrit/#/c/21693/
+http://dev.thundercomm.com/gerrit/#/c/21627/
+http://dev.thundercomm.com/gerrit/#/c/21690/
+http://dev.thundercomm.com/gerrit/#/c/21687/
+
+git fetch ssh://qinxb1202@dev.thundercomm.com:29418/general/kernel/msm-3.18 refs/changes/15/21615/4 && git cherry-pick FETCH_HEAD
+git fetch ssh://qinxb1202@dev.thundercomm.com:29418/general/kernel/msm-3.18 refs/changes/15/21615/4 && git cherry-pick FETCH_HEAD
+
 =============================================================================
+查看CPU是几核
+# cat /proc/cpuinfo | grep ^processor | wc -l
+8
+
+查看CPU有几个核在运行
+# cat /sys/devices/system/cpu/online                                
+0-1,4-7
+
+查看系统支持多少个核:
+# cat /sys/devices/system/cpu/present                               
+0-7
+
+开启某个CPU核
+# echo 1 > /sys/devices/system/cpu/cpu#/online
+1
+注: #为数字，标识哪个CPU核，如八核CPU, 则＃取值为０～７
+
+查看CPU核的运行频率
+# cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq     
+960000
+
+查看CPU核动态调频的Governor
+# /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+interactive
+
+查看当前CPU核的温度
+# cat /sys/class/thermal/thermal_zone9/temp
+42
+
+注: SoC系统往往有多个thermal sensor, 需要分辨监测CPU核温度的是哪些sensor，
+Qualcomm平台可参考/system/etc/thermal-engine.conf文件．
+
+
+
 =============================================================================
+
+FTP帐号密码：
+ftp://192.168.9.8
+
+账号：yenisei2019
+密码：ThunderSoft  
+
+
+高翔Gerrit帐号：
+gaoxiang1026
+ThunderSoft@88
+
 =============================================================================
+Bootchart:
+
+//在data/bootchart/目录中新建start文件
+adb shell 'touch /data/bootchart/start'
+
+/*
+* 在start文件中写入采用时间timeout=120s
+* 这里的时间可以自定义，通过查看源代码可知最长时间不能超过10*60 s
+ */
+adb shell 'echo 120 > /data/bootchart/start'
+
+//在data/bootchart/目录中新建stop文件
+adb shell 'touch /data/bootchart/stop'
+
+//在stop文件中写入1标记，用于停止采集数据
+adb shell 'echo 1 > /data/bootchart/stop'
+
+
 =============================================================================
-=============================================================================
+adb wifi connect:
+
+pc与设备在同一网段（连接同一路由器）：
+
+设备端通过串口配置：
+setprop service.adb.tcp.port 5555
+stop adbd
+start adbd
+
+PC端：
+adb root
+adb connect 192.168.2.109
+adb shell
+
 =============================================================================
 =============================================================================
 =============================================================================
