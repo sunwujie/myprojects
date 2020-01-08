@@ -84,7 +84,7 @@ deconfig:
 	make ARCH=arm64 menuconfig
 	
 	差分：
-	./scripts/diffconfig arch/arm64/configs/msmcortex_defconfig arch/arm64/configs/msmcortex-perf_defconfig
+	./scripts/diffconfig arch/arm64/configs/	 arch/arm64/configs/msmcortex-perf_defconfig
 	
 	merge:
 	merge_config.sh
@@ -283,6 +283,18 @@ GPIO相关操作：
 	
 	高通GPIO计算方法，如何通过原理图确认GPIO
 	
+	 gpio    dir func out in driver(mA) pull
+	 gpio2    in  0 0 1 6  pull_none
+	 gpio3    in  0 0 1 6  pull_none
+	 gpio4    out 1 0 1 2  pull_none
+	 gpio5    in  1 0 1 2  pull_none
+	 gpio6    out 0 1 1 2  pull_none
+	 gpio7    out 0 0 0 2  pull_down
+	 gpio8    out 0 0 0 2  pull_down
+	 gpio9    out 0 0 0 2  pull_none
+	 gpio10   out 0 1 1 16 pull_up
+
+	
 
 	arch/arm/boot/dts/qcom/msm8953-regulator.dtsi
 		spi_eth_1v8: spi_eth_1v8 {
@@ -374,6 +386,19 @@ PMIC GPIO:
 pmi8953 gpio:
 	arch/arm/boot/dts/qcom/msm-pm8953.dtsi:106:			label = "pm8953-gpio";
 
+
+
+Collect register dumps via ADB shell
+To collect GPIO PM8998 register dumps:
+	cd /sys/kernel/debug/regmap/spmi0-00
+	echo 0xC000 > address
+	echo 0x2000 > count
+	cat data
+To collect GPIO PM8I998 register dumps:
+	cd /sys/kernel/debug/regmap/spmi0-02
+	echo 0xC000 > address
+	echo 0xDFF > count
+	cat data
 
 =============================================================================
 高通：
@@ -816,11 +841,218 @@ pinctrl:
 	pinctrl-sdm845.c
 
 =============================================================================
+845:
+	USB:
+		Typec
+			Driver:
+				drivers/power/supply/qcom/qpnp-typec.c:58:#define QPNP_TYPEC_DEV_NAME	"qcom,qpnp-typec"
+			DTS:
+				pm8953_typec: qcom,pm8953_typec@bf00 {
+					compatible = "qcom,qpnp-typec";
+					reg = <0xbf00 0x100>;
+					interrupts =    <0x0 0xbf 0x0 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x1 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x2 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x3 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x4 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x6 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x7 IRQ_TYPE_EDGE_RISING>;
+
+					interrupt-names =       "vrd-change",
+								"ufp-detect",
+								"ufp-detach",
+								"dfp-detect",
+								"dfp-detach",
+								"vbus-err",
+								"vconn-oc";
+				};
+
+
+
+	HDMI：
+	
+		&qupv3_se10_i2c {
+			status = "ok";
+			qcom,clk-freq-out = <100000>;
+			lt8912@48 {
+				compatible = "lontium,lt8912";
+				reg = <0x48>;
+				lt,index = <0>;
+				lt,reset-gpio = <&tlmm 42 0x00>;
+				lt,pwren-gpio = <&tlmm 50 0x00>;
+				lt,hpd-gpio = <&tlmm 44 0x00>;
+				interrupt-parent = <&tlmm>;
+				interrupts = <44 0>;
+				interrupt-names = "hdmi_hpd_irq1";
+			};
+		};
+		
+		
+		drivers/gpu/drm/msm/dsi-staging/dsi_panel.c:1825:		"qcom,mdss-dsi-mode-sel-gpio-state", NULL);
+		
+		DSI:
+		
+			arch/arm64/boot/dts/qcom/dsi-panel-lt8912-1080p-video.dtsi:14:	dsi_lt8912_1080_video: qcom,mdss_dsi_lt8912_1080p_video {
+		
+			DSI0:
+			DTS:
+			
+			arch/arm64/boot/dts/qcom/sdm845-sde-display.dtsi:507:	dsi_lt8912_1080_video_dsi0_display: qcom,dsi-display@18 {
+
+			
+			dsi_lt8912_1080_video_dsi0_display: qcom,dsi-display@18 {
+				compatible = "qcom,dsi-display";
+				label = "dsi_lt8912_1080_video_dsi0_display";
+				qcom,display-type = "primary";
+
+				qcom,dsi-ctrl = <&mdss_dsi0>;
+				qcom,dsi-phy = <&mdss_dsi_phy0>;
+				clocks = <&mdss_dsi0_pll BYTECLK_MUX_0_CLK>,
+					<&mdss_dsi0_pll PCLK_MUX_0_CLK>;
+				clock-names = "src_byte_clk", "src_pixel_clk";
+
+				pinctrl-names = "panel_active", "panel_suspend";
+				pinctrl-0 = <&sde_dsi_active /*&sde_te_active*/>;
+				pinctrl-1 = <&sde_dsi_suspend /*&sde_te_suspend*/>;
+				qcom,platform-reset-gpio = <&tlmm 88 0>;
+
+				qcom,dsi-panel = <&dsi_lt8912_1080_video>;
+				vddio-supply = <&pm8998_l14>;
+			};
+			
+			Driver:
+			drivers/gpu/drm/msm/dsi-staging/dsi_display.c:53:	{.compatible = "qcom,dsi-display"},
+			
+		LT8912:
+			DTS:
+				arch/arm64/boot/dts/qcom/sdm845-mtp.dtsi:588:		compatible = "lontium,lt8912";
+				
+				arch/arm64/boot/dts/qcom/sdm845-qupv3.dtsi:501:	qupv3_se10_i2c: i2c@a88000 {
+				
+				I2C总线：
+					qupv3_se10_i2c: i2c@a88000 {
+						compatible = "qcom,i2c-geni";
+						reg = <0xa88000 0x4000>;
+						interrupts = <GIC_SPI 355 0>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						clock-names = "se-clk", "m-ahb", "s-ahb";
+						clocks = <&clock_gcc GCC_QUPV3_WRAP1_S2_CLK>,
+							<&clock_gcc GCC_QUPV3_WRAP_1_M_AHB_CLK>,
+							<&clock_gcc GCC_QUPV3_WRAP_1_S_AHB_CLK>;
+						dmas = <&gpi_dma1 0 2 3 64 0>,
+							<&gpi_dma1 1 2 3 64 0>;
+						dma-names = "tx", "rx";
+						pinctrl-names = "default", "sleep";
+						pinctrl-0 = <&qupv3_se10_i2c_active>;
+						pinctrl-1 = <&qupv3_se10_i2c_sleep>;
+						qcom,wrapper-core = <&qupv3_1>;
+						status = "disabled";
+					};
+				
+				&qupv3_se10_i2c {
+					status = "ok";
+					qcom,clk-freq-out = <100000>;
+					lt8912@48 {
+						compatible = "lontium,lt8912";g
+						reg = <0x48>;
+						//lt,index = <0>;
+						lt,reset-gpio = <&tlmm 42 0x00>;
+						lt,pwren-gpio = <&tlmm 50 0x00>;
+						//lt,hpd-gpio = <&tlmm 44 0x00>;
+						interrupt-parent = <&tlmm>;
+						interrupts = <44 0>;
+						interrupt-names = "hdmi_hpd_irq1";
+					};
+				};
+				
+			Drvier:
+				drivers/gpu/drm/bridge/lt8912/lt8912.c:111:	{ .compatible = "lontium,lt8912"},
+				
+				
+				
+				
+			
+			
+			
+			Key:
+				arch/arm/boot/dts/qcom-msm8960.dtsi:158:					compatible = "qcom,pm8921-pwrkey";
+				drivers/input/misc/pmic8xxx-pwrkey.c:189:	{ .compatible = "qcom,pm8921-pwrkey" },
 
 =============================================================================
+给高通提case：
+
+  MSM8953.LA.2.0.2-00030-STD.PROD-1  
+
+https://qualcomm-cdmatech-support.my.salesforce.com/500?fcf=00B30000005Fa5K
+
+  gaoxiang1026@thundersoft.com
+  Gx160209
+
+
+高通文档下载：
+https://createpoint.qti.qualcomm.com/dashboard/public/productkit#public/product-kit/search
+
+liuyang0626@thundersoft.com
+Ly2717++
+
+
+
 =============================================================================
+Is there a way such as factory tools to test some basic function.
+we need a tool to test some bassic functions in the production stage.
+
+
+Hi QC,
+
+we need a tool to do some bassic tests (factory tools) in the production stage.
+Are there any tools and docs we can refer to?
+
+
+Thank you.
+
 =============================================================================
+LED子系统：
+	https://blog.csdn.net/weixin_30767921/article/details/98441503
+	
+extcon模块：可以用来检测外部的链接
+	extcon-usb-gpio.c：可以用来检测外部USB的链接状态：ID ，VBUS
+	extcon-gpio.c：可以用来检测外部的GPIO链接
+	
+GPIO_KEY:
+	
+	volume_up
+	
+	drivers/input/keyboard/gpio_keys.c
+	
+	设备节点路径：
+	/sys/devices/platform/soc/soc:gpio_keys
+	
+	获取event事件：
+	getevent -lr /dev/input/event0
+	
+Power_key:
+
+
+Volume_down:
+	arch/arm64/boot/dts/qcom/pmi8998.dtsi
+		qcom,power-on@800 {
+			compatible = "qcom,qpnp-power-on";
+			reg = <0x800 0x100>;
+		};
+	
+	drivers/input/misc/qpnp-power-on.c
+		compatible = "qcom,qpnp-power-on";
+		
 =============================================================================
+
+pr_err
+	pr_debug("===== %s LED register dump start =====\n", led->cdev.name);
+
+dev_err
+	dev_err(&led->pdev->dev,"WLED read sink reg failed(%d)\n", rc);
+
+
 =============================================================================
 =============================================================================
 =============================================================================
