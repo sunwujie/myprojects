@@ -1,0 +1,460 @@
+=============================================================================
+Code:
+626：
+
+Android：
+#repo init -u ssh://qinxb1202@dev.thundercomm.com:29418/general/manifest -b yenisei-la-2.0.2-sdm626-p-dev
+#repo sync -c -j4 --no-tags
+# repo sync -c -j4;while [ $? -ne 0 ];do repo sync -c -j8 ;done
+
+
+step2. 北京gerrit:
+repo init -u  ssh://<user>@dev.thundercomm.com:29418/general/manifest -b sparkle-la-7.1-sdm626-p-dev
+repo sync -c -j4 --no-tags
+
+
+
+build:
+#cd LINUX/android/
+#source build/envsetup.sh 
+#lunch msm8953_64-userdebug 
+#make -j4
+
+=============================================================================
+
+镜像文件：
+kernel:
+	make bootimage -j8
+	fastboot flash boot boot.img
+lk:
+	make aboot -j8
+	fastboot flash aboot emmc_appsboot.mbn
+
+
+=============================================================================
+
+编译kernel及uboot的mk：
+	device/qcom/msm8953_64/AndroidBoard.mk
+		TARGET_NO_BOOTLOADER
+			include bootable/bootloader/lk/AndroidBoot.mk
+		TARGET_KERNEL_SOURCE := kernel
+			include $(TARGET_KERNEL_SOURCE)/AndroidKernel.mk
+			
+deconfig:
+	user:
+		arch/arm64/configs/msmcortex-perf_defconfig
+	
+	eng/debug
+		arch/arm64/configs/msmcortex_defconfig
+		
+	make ARCH=arm64 menuconfig
+	
+	差分：
+	./scripts/diffconfig arch/arm64/configs/	 arch/arm64/configs/msmcortex-perf_defconfig
+	
+	merge:
+	merge_config.sh
+
+DTS:
+	CONFIG_ARCH_MSM8953=y
+	
+	Linux DTS(Device Tree Source)设备树详解之三
+	https://blog.csdn.net/radianceblau/article/details/76574727
+	
+	
+	main dts:
+		arch/arm/boot/dts/qcom/apq8053-turbox625la.dts
+		
+		两个设备节点：
+				1.
+					compatible = "qcom,apq8053-mtp", "qcom,apq8053", "qcom,mtp";
+					arch/arm/mach-msm/board-8953.c:20:	"qcom,apq8053",
+					
+				2.
+					compatible = "gpio_ctrl";
+					drivers/misc/gpio_ctrl.c:154:		.name = "gpio_ctrl",
+	
+	include:
+		#include "apq8053.dtsi"
+			arch/arm/boot/dts/qcom/msm8953.dtsi
+				arch/arm/boot/dts/qcom/msm8953-regulator.dtsi
+				
+		#include "msm8953-mtp.dtsi"
+			包括Camera及Display等设备节点及GPIO
+	
+
+	
+	arch/arm/boot/dts/qcom/Makefile:236:dtb-$(CONFIG_ARCH_MSM8953) += msm8953-sim.dtb
+	
+	dtb-$(CONFIG_ARCH_MSM8953) += msm8953-sim.dtb \
+        msm8953-rumi.dtb \
+        msm8953-cdp.dtb \
+        msm8953-mtp.dtb \
+        msm8953-ext-codec-mtp.dtb \
+        msm8953-qrd-sku3.dtb \
+        msm8953-rcm.dtb \
+        apq8053-rcm.dtb \
+        msm8953-ext-codec-rcm.dtb \
+        apq8053-cdp.dtb \
+        apq8053-ipc.dtb \
+        msm8953-ipc.dtb \
+        apq8053-turbox625la.dtb \
+        apq8053-ext-audio-mtp.dtb \
+        apq8053-ext-codec-rcm.dtb \
+        msm8953-cdp-1200p.dtb \
+        msm8953-iot-mtp.dtb \
+        apq8053-iot-mtp.dtb
+
+
+
+Driver files:
+
+SPI Driver:
+	// Ethernet
+	drivers/net/ethernet/micrel/ks8851.c
+	
+	DTS:
+	arch/arm/boot/dts/qcom/msm8953.dtsi:709:			compatible = "micrel,ks8851";
+	
+	Driver:
+	drivers/net/ethernet/micrel/ks8851.c:1797:	{ .compatible = "micrel,ks8851" },
+
+
+USB：
+	arch/arm/boot/dts/qcom/msm8953.dtsi:2253:		compatible = "qcom,qusb2phy";
+	drivers/usb/phy/phy-msm-qusb.c:1385:	{ .compatible = "qcom,qusb2phy", },
+
+
+
+Regulator:
+	arch/arm/boot/dts/qcom/msm8953-regulator.dtsi:181:		pm8953_l7: regulator-l7 {
+	
+	
+HDMI chip:
+	DSI1
+	LT8912B（龙迅Lontium） : MIPI DSI to LVDS/HDMI/MHL
+	
+LCM:
+	ASE5S2410(skyworks:贸泽电子)
+
+SPC：
+	connector：CSI-CSI；DSI-DSI
+	AXE530127D	
+	
+USB：
+	HD3SS6126：USB switch开关（可选择后端输出port）
+	cyusb3304：USB HUB
+
+HDMI:
+	EDID
+	https://blog.csdn.net/flaoter/article/details/73252240
+	
+LED:
+	SN3193:呼吸灯
+	
+	datasheet：
+	https://wenku.baidu.com/view/e449c5553b3567ec102d8a09.html
+	
+	驱动：
+	https://blog.csdn.net/zhenwenxian/article/details/8495356
+
+Ehternet:
+	KSZ8851SNL-TR:Ethernet chip
+	AX88179：USB转网卡
+	H5084NL:网卡控制器
+		https://wenku.baidu.com/view/7fcfd2ddb9f3f90f76c61bd2.html
+
+UartToUSB:
+	FT230XQ:
+
+陀螺仪:
+	MPU6500
+
+=============================================================================
+=============================================================================
+
+Camera ADSP:
+
+Kernel DTS:
+	kernel/msm-3.18/arch/arm64/boot/dts/qcom/
+
+Hal:
+	
+
+Vendor code:
+	vendor/qcom/proprietary/mm-camera/mm-camera2/media-controller/modules/sensors
+
+
+
+LK:
+	app/aboot/aboot.c
+
+
+=============================================================================
+GPIO相关操作：
+
+	*******
+	原文链接：https://blog.csdn.net/s_jason/article/details/73864103
+	*******
+	
+	调试方法：
+		1、获取gpio状态
+	        cd /sys/kernel/debug/
+	        cat gpio
+	2、操作gpio（以gpio99为例）
+	        cd /sys/class/gpio/
+	        echo 99 > export
+	        cd gpio99
+	        echo in/out > direction    //设置gpio输入或输出
+	        cat direction                    //获取gpio输入输出状态
+	        echo 'value' > value        //设置gpio寄存器值
+	        cat value                        //获取gpio寄存器的值
+
+	
+	高通GPIO计算方法，如何通过原理图确认GPIO
+	
+	 gpio    dir func out in driver(mA) pull
+	 gpio2    in  0 0 1 6  pull_none
+	 gpio3    in  0 0 1 6  pull_none
+	 gpio4    out 1 0 1 2  pull_none
+	 gpio5    in  1 0 1 2  pull_none
+	 gpio6    out 0 1 1 2  pull_none
+	 gpio7    out 0 0 0 2  pull_down
+	 gpio8    out 0 0 0 2  pull_down
+	 gpio9    out 0 0 0 2  pull_none
+	 gpio10   out 0 1 1 16 pull_up
+
+	
+
+	arch/arm/boot/dts/qcom/msm8953-regulator.dtsi
+		spi_eth_1v8: spi_eth_1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "ethernet_1v8";
+		gpio = <&tlmm 48 0>;
+		enable-active-high;
+	      };
+
+		spi_eth_3v3: spi_eth_3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "ethernet_3v3";
+		gpio = <&tlmm 95 0>;
+		enable-active-high;
+	      };
+
+	msm-3.18/arch/arm/boot/dts/qcom/msm8953.dtsi
+
+			ethernet@0 {
+			status = "okay";
+			compatible = "micrel,ks8851";
+			reg = <0>;
+			interrupt-parent = <&tlmm>;
+			interrupts = <46 0>;
+			reset-gpios = <&tlmm 47 0>;
+			vdd-supply = <&spi_eth_3v3>;
+			vdd-io-supply = <&spi_eth_1v8>;
+			spi-max-frequency = <25000000>;
+		};
+
+	drivers/net/ethernet/micrel/ks8851.c
+		int gpio;
+		gpio = of_get_named_gpio_flags(spi->dev.of_node, "reset-gpios",0, NULL);
+		if (！gpio_is_valid(gpio)) {
+			pr_debug("Eorror\n");
+		}
+		ret = devm_gpio_request_one(&spi->dev, gpio,GPIOF_OUT_INIT_LOW, "ks8851_rst_n");
+		ret = gpio_direction_output(gpio, 0x1);
+
+
+// Test
+        if(of_get_property(np, "net-switch-reset", NULL)) {
+                pdata->net_switch_reset = of_get_named_gpio(np, "net-switch-reset", 0);
+                if(!gpio_is_valid(pdata->net_switch_reset)) {
+                        dev_err(dev, "get net-switch-reset failed\n");
+                        goto err_gpio;
+                }
+
+                ret = gpio_request(pdata->net_switch_reset, "net-switch-reset");
+                if(ret) {
+                        dev_err(dev, "request net-switch-reset failed\n");
+                        goto err_gpio;
+                }
+
+                ret = gpio_direction_output(pdata->net_switch_reset, 0);
+                if(ret) {
+                        dev_err(dev, "set direction net-switch-reset failed\n");
+                        goto err_gpio;
+                }
+				
+				 if(gpio_is_valid(pdata->net_switch_reset)) {
+                        printk("logan test --- %s --- %d\n", __func__, __LINE__);
+                        gpio_set_value(pdata->net_switch_reset, 0);
+                }
+        }
+
+	
+regulator:
+		ks->vdd_io = devm_regulator_get(&spi->dev, "vdd-io");
+		if (IS_ERR(ks->vdd_io)) {
+			ret = PTR_ERR(ks->vdd_io);
+		}
+		ret = regulator_enable(ks->vdd_io);
+		if (ret) {
+			dev_err(&spi->dev, "regulator vdd_io enable fail: %d\n",
+				ret);
+		}
+		regulator_disable(priv->vdd_reg);
+
+pintrol:
+	arch/arm/boot/dts/qcom/msm8953-pinctrl.dtsi
+	drivers/pinctrl/qcom/pinctrl-msm8953.c
+	
+	
+PMIC GPIO:
+	arch/arm/boot/dts/qcom/msm8953.dtsi:135:#include "msm8953-smp2p.dtsi"
+	arch/arm/boot/dts/qcom/msm8953-smp2p.dtsi
+
+pmi8953 gpio:
+	arch/arm/boot/dts/qcom/msm-pm8953.dtsi:106:			label = "pm8953-gpio";
+
+
+
+Collect register dumps via ADB shell
+To collect GPIO PM8998 register dumps:
+	cd /sys/kernel/debug/regmap/spmi0-00
+	echo 0xC000 > address
+	echo 0x2000 > count
+	cat data
+To collect GPIO PM8I998 register dumps:
+	cd /sys/kernel/debug/regmap/spmi0-02
+	echo 0xC000 > address
+	echo 0xDFF > count
+	cat data
+=============================================================================
+=============================================================================
+USB:
+[init.svc.qcom-usb-sh]: [stopped]
+[persist.sys.usb.config]: [diag,serial_smd,rmnet_ipa,adb]
+[persist.sys.usb.config.extra]: [none]
+[ro.sys.usb.default.config]: [diag,serial_smd,rmnet_ipa,adb]
+[sys.usb.config]: [diag,serial_smd,rmnet_ipa,adb]
+[sys.usb.configfs]: [0]
+[sys.usb.ffs.ready]: [1]
+[sys.usb.rps_mask]: [0]
+[sys.usb.state]: [diag,serial_smd,rmnet_ipa,adb]
+
+sys.usb.config=diag,serial_smd,rmnet_bam 	
+
+
+device/qcom/common/rootdir/etc/init.qcom.usb.sh
+device/qcom/common/rootdir/etc/init.qcom.usb.rc
+
+persist.sys.usb.config=diag,serial_smd,rmnet_ipa,adb
+ro.sys.usb.default.config=diag,serial_smd,rmnet_ipa,adb
+
+setprop sys.usb.config diag,serial_smd,rmnet_ipa
+
+
+/sys/devices/soc/79000.qusb
+
+
+USB hub path:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1
+
+USB1:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.1
+
+USB2:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.2
+	
+USB3:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.3
+
+Ethernet:
+	/sys/devices/soc/7000000.ssusb/7000000.dwc3/xhci-hcd.0.auto/usb1/1-1/1-1.4
+
+=============================================================================
+pinctrol:
+	定义：
+		drivers/pinctrl/qcom/pinctrl-msm8953.c:1255:	FUNCTION(blsp_uart2),
+	使用：
+		arch/arm/boot/dts/qcom/msm8953-pinctrl.dtsi
+		arch/arm/boot/dts/qcom/msm8953.dtsi
+
+
+=============================================================================
+626 boot reason:
+
+/*Target power on reasons*/
+#define HARD_RST                1		0001
+#define DC_CHG                  8       1000
+#define USB_CHG                 16      10000 
+#define PON1                    32		100000    POE
+#define CBLPWR_N                64		1000000
+#define KPDPWR_N                128		10000000
+
+
+
+POE:
+	bootreason status: 32 = PON1
+	
+USB:
+	bootreason status: 48  = USB_CHG & PON1 
+
+	
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
