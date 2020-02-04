@@ -1,0 +1,659 @@
+=============================================================================
+ubuntu安装微信：
+https://gitee.com/wszqkzqk/deepin-wine-for-ubuntu
+
+下载最新版本的微信即可
+=============================================================================
+安装irtualbox：
+如果在开机的BIOS页面中设置了secure key option enable的话，内核只允许安装特定key签名的模块。现在有两种解决方法，以就是生成一对签名，然后加到内核中，这种方法有点麻烦，有需要的可以各自找他人的参考一下。第二种就是在BIOS页面把那个secure key option给diabled掉，这样就可以不用添加签名就将模块装载了。最后就可以成功运行VirtualBox了。
+————————————————
+版权声明：本文为CSDN博主「希明人」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/ximingren/article/details/79200828
+=============================================================================
+SVN:
+帐号：
+	qinxb1202@thundersoft.com
+密码：
+	11QQ22qq
+
+URL:
+http://192.168.9.128:8000/svn2/Yenisei
+
+Gerrit:
+http://dev.thundercomm.com/gerrit/#/q/status:open
+
+WIKI:
+http://192.168.9.9:32768/wiki/index.php/Yenisei
+
+
+845：
+
+Android：
+#repo init -u ssh://qinxb1202@dev.thundercomm.com:29418/general/manifest -b yenisei-la-1.0.1-sdm845-p-dev
+#repo sync -c -j4 --no-tags
+
+
+#cd LINUX/android/ 
+#source build/envsetup.sh 
+#lunch sdm845-userdebug 
+#make -j4
+
+
+Camera App：
+
+repo sync -c --no-tags
+
+=============================================================================
+
+USB3Vision:
+官方文档：
+https://www.visiononline.org/mvo-content.cfm?id=206
+
+
+
+=============================================================================
+高通：
+sdm845
+
+sdm626
+
+=============================================================================
+        在配置静态IP时，不同办公区域的同学要配置不同的参数
+        在1605的同学网络配置参数：
+        IP地址：192.168.112.xx
+        子网掩码：255.255.255.0
+        网关：192.168.112.1
+        DNS服务器：202.96.64.68
+                             202.96.69.38
+
+        在1603的同学网络配置参数：
+        IP地址：192.168.114.xx
+        子网掩码：255.255.255.0
+        网关：192.168.114.1
+        DNS服务器：202.96.64.68
+                             202.96.69.38pinctrl
+
+        在1606的同学网络配置参数：
+        IP地址：192.168.115.xx
+        子网掩码：255.255.255.0
+        网关：192.168.115.1
+        DNS服务器：202.96.64.68
+                             202.96.69.38
+
+
+=============================================================================
+
+
+=============================================================================
+高通：
+	高通 MSM8K bootloader 之一： SBL1
+	https://blog.csdn.net/Fybon/article/details/18185441
+	https://blog.csdn.net/Fybon/article/details/37565227
+	
+	高通 MSM8K bootloader 之四： ramdump
+	https://blog.csdn.net/Fybon/article/details/39158087
+
+	Android for MSM Project
+	https://blog.csdn.net/Fybon/article/details/70258559
+	
+	linux驱动由浅入深系列：块设备驱动之一（高通eMMC分区实例）
+	https://blog.csdn.net/RadianceBlau/article/details/72956127
+	
+	高通kernel顶层目录下的AndroidKernel.mk文件
+	https://blog.csdn.net/daoshuti/article/details/72667464
+	
+	
+DTS相关资料：
+	https://blog.csdn.net/radianceblau/article/details/70800076
+	
+Linux Driver专栏：（高通平台）
+	https://blog.csdn.net/radianceblau/category_6705724.html
+	
+	
+=============================================================================
+
+=============================================================================
+BSP: 秦晓彬，白晓东，刘洋，姚长辉，高朝春，唐金泽，刘彦斌
+Andorid App：马思远 张胜旺 吴中伟
+PC App：陈兆第 姜先达 刘泳江
+
+
+=============================================================================
+
+#!/bin/sh
+adb root
+adb reboot bootloader
+#fastboot flash aboot aboot.mbn
+fastboot flash boot boot.img
+fastboot flash system system.img
+fastboot flash userdata userdata.img
+fastboot flash recovery recovery.img
+fastboot flash persist persist.img
+fastboot reboot
+
+
+=============================================================================
+
+ PM: Some devices failed to suspend, or early wake event detected
+[ 1456.823990] PM: resume of devices complete after 1.057 msecs
+[ 1456.859934] PM: Finishing wakeup.
+[ 1456.863130] Restarting tasks ... done.
+[ 1456.885756] Abort: Some devices failed to suspend, or early wake event detected
+[ 1456.892217] PM: suspend exit 1970-01-02 07:58:27.736923199 UTC
+[ 1457.000753] PM: suspend entry 1970-01-02 07:58:27.845445386 UTC
+[ 1457.005661] PM: Syncing filesystems ... done.
+[ 1457.025234] PM: Preparing system for mem sleep
+[ 1457.031939] Freezing user space processes ... (elapsed 0.017 seconds) done.
+[ 1457.054350] Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+[ 1457.067089] PM: Entering mem sleep
+[ 1457.070581] Suspending console(s) (use no_console_suspend to debug)
+[ 1457.082946] msm-dwc3 7000000.ssusb: Abort PM suspend!! (USB is outside LPM)
+[ 1457.082982] dpm_run_callback(): platform_pm_suspend+0x0/0x50 returns -16
+[ 1457.083001] PM: Device 7000000.ssusb failed to suspend: error -16
+[ 1457.083012] PM: Some devices failed to suspend, or early wake event detected
+[ 1457.084589] PM: resume of devices complete after 1.557 msecs
+[ 1457.120507] PM: Finishing wakeup.
+[ 1457.123692] Restarting tasks ... done.
+[ 1457.147590] Abort: Some devices failed to suspend, or early wake event detected
+[ 1457.154081] PM: suspend exit 1970-01-02 07:58:27.998786219 UTC
+[ 1457.261124] PM: suspend entry 1970-01-02 07:58:28.105817469 UTC
+[ 1457.266030] PM: Syncing filesystems ... done.
+[ 1457.283420] PM: Preparing system for mem sleep
+[ 1457.290311] Freezing user space processes ... (elapsed 0.017 seconds) done.
+[ 1457.312969] Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+[ 1457.325932] PM: Entering mem sleep
+[ 1457.329492] Suspending console(s) (use no_console_suspend to debug)
+[ 1457.341801] msm-dwc3 7000000.ssusb: Abort PM suspend!! (USB is outside LPM)
+[ 1457.341837] dpm_run_callback(): platform_pm_suspend+0x0/0x50 returns -16
+[ 1457.341855] PM: Device 7000000.ssusb failed to suspend: error -16
+[ 1457.341866] PM: Some devices failed to suspend, or early wake event detected
+
+
+
+[  197.684062] wcd9335-slim tasha-slim-pgd: wcd9xxx_slim_probe: codec type is 2
+[  197.858411] wcd9xxx_slim_probe: failed to get slimbus tasha-slim-pgd logical address: -6
+[  200.109184] usb 2-1.2: USB disconnect, device number 3
+[  201.942766] msm-dwc3 7000000.ssusb: DWC3 in low power mode
+[  206.175498] PM: suspend entry 1970-01-01 05:01:50.006882113 UTC
+[  206.180795] PM: Syncing filesystems ... done.
+[  206.209912] PM: Preparing system for mem sleep
+[  206.247012] Freezing user space processes ... 
+[  206.256834] Error: returning -512 value
+[  206.271014] PM: Wakeup pending, aborting suspend
+[  206.274622] active wakeup source: PowerManagerService.WakeLocks
+[  206.280783] 
+[  206.281994] Freezing of tasks aborted after 0.030 seconds
+[  206.287373] Restarting tasks ... done.
+[  206.313520] Abort: Pending Wakeup Sources: PowerManagerService.WakeLocks 
+[  206.319450] PM: suspend exit 1970-01-01 05:01:50.150854977 UTC
+[  206.426915] PM: suspend entry 1970-01-01 05:01:50.258308779 UTC
+[  206.431935] PM: Syncing filesystems ... done.
+[  206.451326] PM: Preparing system for mem sleep
+[  206.457944] Freezing user space processes ... 
+[  206.467884] Error: returning -512 value
+[  206.486574] (elapsed 0.024 seconds) done.
+[  206.489558] Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+[  206.502777] PM: Entering mem sleep
+[  206.506152] Suspending console(s) (use no_console_suspend to debug)
+[  206.519680] PM: Wakeup pending, aborting suspend
+[  206.519695] active wakeup source: event3
+[  206.519873] PM: Some devices failed to suspend, or early wake event detected
+[  206.521856] PM: resume of devices complete after 1.965 msecs
+[  206.546498] PM: Finishing wakeup.
+[  206.549920] Restarting tasks ... done.
+[  206.580920] Abort: Pending Wakeup Sources: event3 
+[  206.584892] PM: suspend exit 1970-01-01 05:01:50.416292790 UTC
+[  206.692955] PM: suspend entry 1970-01-01 05:01:50.524336175 UTC
+[  206.698519] PM: Syncing filesystems ... done.
+[  206.723786] PM: Preparing system for mem sleep
+[  206.731033] Freezing user space processes ... 
+[  206.740791] Error: returning -512 value
+[  206.759204] (elapsed 0.024 seconds) done.
+[  206.762192] Freezing remaining freezable tasks ... (elapsed 0.012 seconds) done.
+[  206.780564] PM: Entering mem sleep
+[  206.783940] Suspending console(s) (use no_console_suspend to debug)
+
+
+
+网络启动耗时：
+msm8953_64:/mnt/media_rw # 
+msm8953_64:/mnt/media_rw # 
+msm8953_64:/mnt/media_rw # [   97.502378] init: Service 'adbd' is being killed...
+[   97.506628] Error: returning -512 value
+[   97.506852] dwc3 7000000.dwc3: request 0000000000000000 was not queued to ep0out
+[   97.518926] init: Service 'adbd' (pid 658) killed by signal 9
+[   97.523647] init: Service 'adbd' (pid 658) killing any children in process group
+[   97.553144] enable_store: android_usb: already disabled
+[   97.558311] init: Starting service 'adbd'...
+
+
+
+=============================================================================
+845线路图发现的问题：
+1.
+
+
+
+=============================================================================
+
+
+=============================================================================
+Button keys:
+	drivers/input/misc/soc_button_array.c
+	./include/linux/gpio_keys.h
+	./drivers/input/keyboard/gpio_keys.c
+
+
+
+=============================================================================
+按键进入烧写模式：
+1. 不连接adb显示
+
+佳能企业股份有限公司
+
+=============================================================================
+
+
+
+
+=============================================================================
+Audio:
+	sound/soc/msm/msm8952.c:3282:	{ .compatible = "qcom,msm8952-audio-codec", },
+
+
+
+=============================================================================
+
+bringup code:
+http://dev.thundercomm.com/gerrit/#/c/21615/
+http://dev.thundercomm.com/gerrit/#/c/21691/
+http://dev.thundercomm.com/gerrit/#/c/21693/
+http://dev.thundercomm.com/gerrit/#/c/21627/
+http://dev.thundercomm.com/gerrit/#/c/21690/
+http://dev.thundercomm.com/gerrit/#/c/21687/
+
+git fetch ssh://qinxb1202@dev.thundercomm.com:29418/general/kernel/msm-3.18 refs/changes/15/21615/4 && git cherry-pick FETCH_HEAD
+git fetch ssh://qinxb1202@dev.thundercomm.com:29418/general/kernel/msm-3.18 refs/changes/15/21615/4 && git cherry-pick FETCH_HEAD
+
+=============================================================================
+查看CPU是几核
+# cat /proc/cpuinfo | grep ^processor | wc -l
+8
+
+查看CPU有几个核在运行
+# cat /sys/devices/system/cpu/online                                
+0-1,4-7
+
+查看系统支持多少个核:
+# cat /sys/devices/system/cpu/present                               
+0-7
+
+开启某个CPU核
+# echo 1 > /sys/devices/system/cpu/cpu#/online
+1
+注: #为数字，标识哪个CPU核，如八核CPU, 则＃取值为０～７
+
+查看CPU核的运行频率
+# cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq     
+960000
+
+查看CPU核动态调频的Governor
+# /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+interactive
+
+查看当前CPU核的温度
+# cat /sys/class/thermal/thermal_zone9/temp
+42
+
+注: SoC系统往往有多个thermal sensor, 需要分辨监测CPU核温度的是哪些sensor，
+Qualcomm平台可参考/system/etc/thermal-engine.conf文件．
+
+
+
+=============================================================================
+--------------------------------------------
+FTP帐号密码：
+ftp://192.168.9.8
+--------------------------------------------
+账号：yenisei2019
+密码：ThunderSoft  
+--------------------------------------------
+
+高翔Gerrit帐号：
+gaoxiang1026
+ThunderSoft@88
+--------------------------------------------
+
+笔记本：
+BOIS：TSdl1234
+OS：tsdl
+PW：TSdl123#
+--------------------------------------------
+
+http://jira.abilitycorp.com.tw:8081/
+Abilitycorp JIRA
+JIRA is the project tracker for teams building great software. Log in now to track your issues and tasks, collaborate with your team, and stay on top of project activity.
+Username:	Qin Xiaobin thundersoft
+Email:	qinxb1202@thundersoft.com
+Full Name:	Qin Xiaobin thundersoft
+Get started by setting your own password and logging in.
+
+用户名：Qin Xiaobin thundersoft
+密码：11QQ22qq
+
+--------------------------------------------
+
+Gerrit:
+	http://dev.thundercomm.com/gerrit/#/q/status:open
+	高翔：
+	gaoxiang1026
+	ThunderSoft@88
+
+--------------------------------------------
+SVN:
+帐号：
+	qinxb1202@thundersoft.com
+密码：
+	11QQ22qq
+
+--------------------------------------------
+平台帐号：
+qinxb1202
+ThunderSoft
+
+--------------------------------------------
+
+smb服务器：
+111.207
+
+smb://192.168.111.207/99_members/gaoxiang/adsp/
+
+账号：dlts 
+密码：Dlts1605
+
+=============================================================================
+Bootchart:
+
+//在data/bootchart/目录中新建start文件
+adb shell 'touch /data/bootchart/start'
+
+/*
+* 在start文件中写入采用时间timeout=120s
+* 这里的时间可以自定义，通过查看源代码可知最长时间不能超过10*60 s
+ */
+adb shell 'echo 120 > /data/bootchart/start'
+
+//在data/bootchart/目录中新建stop文件
+adb shell 'touch /data/bootchart/stop'
+
+//在stop文件中写入1标记，用于停止采集数据
+adb shell 'echo 1 > /data/bootchart/stop'
+
+
+=============================================================================
+adb wifi connect:
+
+pc与设备在同一网段（连接同一路由器）：
+
+设备端通过串口配置：
+setprop service.adb.tcp.port 5555
+stop adbd
+start adbd
+
+PC端：
+adb root
+adb connect 192.168.2.109
+adb shell
+
+=============================================================================
+845:
+
+KERNEL_DEFCONFIG := sdm845-perf_defconfig
+	arm64/configs/sdm845-perf_defconfig
+
+DTS:
+	sdm845.dts
+		#include "sdm845.dtsi"
+			#include "pm8998.dtsi"
+		#include "sdm845-sde-display.dtsi"
+		#include "sdm845-mtp.dtsi"
+			#include "sdm845-pmic-overlay.dtsi"
+				#include "pmi8998.dtsi"
+
+
+pinctrl:
+	pinctrl-sdm845.c
+	
+
+=============================================================================
+845:
+	USB:
+		Typec
+			Driver:
+				drivers/power/supply/qcom/qpnp-typec.c:58:#define QPNP_TYPEC_DEV_NAME	"qcom,qpnp-typec"
+			DTS:
+				pm8953_typec: qcom,pm8953_typec@bf00 {
+					compatible = "qcom,qpnp-typec";
+					reg = <0xbf00 0x100>;
+					interrupts =    <0x0 0xbf 0x0 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x1 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x2 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x3 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x4 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x6 IRQ_TYPE_EDGE_RISING>,
+							<0x0 0xbf 0x7 IRQ_TYPE_EDGE_RISING>;
+
+					interrupt-names =       "vrd-change",
+								"ufp-detect",
+								"ufp-detach",
+								"dfp-detect",
+								"dfp-detach",
+								"vbus-err",
+								"vconn-oc";
+				};
+
+
+
+	HDMI：
+	
+		&qupv3_se10_i2c {
+			status = "ok";
+			qcom,clk-freq-out = <100000>;
+			lt8912@48 {
+				compatible = "lontium,lt8912";
+				reg = <0x48>;
+				lt,index = <0>;
+				lt,reset-gpio = <&tlmm 42 0x00>;
+				lt,pwren-gpio = <&tlmm 50 0x00>;
+				lt,hpd-gpio = <&tlmm 44 0x00>;
+				interrupt-parent = <&tlmm>;
+				interrupts = <44 0>;
+				interrupt-names = "hdmi_hpd_irq1";
+			};
+		};
+		
+		
+		drivers/gpu/drm/msm/dsi-staging/dsi_panel.c:1825:		"qcom,mdss-dsi-mode-sel-gpio-state", NULL);
+		
+		DSI:
+		
+			arch/arm64/boot/dts/qcom/dsi-panel-lt8912-1080p-video.dtsi:14:	dsi_lt8912_1080_video: qcom,mdss_dsi_lt8912_1080p_video {
+		
+			DSI0:
+			DTS:
+			
+			arch/arm64/boot/dts/qcom/sdm845-sde-display.dtsi:507:	dsi_lt8912_1080_video_dsi0_display: qcom,dsi-display@18 {
+
+			
+			dsi_lt8912_1080_video_dsi0_display: qcom,dsi-display@18 {
+				compatible = "qcom,dsi-display";
+				label = "dsi_lt8912_1080_video_dsi0_display";
+				qcom,display-type = "primary";
+
+				qcom,dsi-ctrl = <&mdss_dsi0>;
+				qcom,dsi-phy = <&mdss_dsi_phy0>;
+				clocks = <&mdss_dsi0_pll BYTECLK_MUX_0_CLK>,
+					<&mdss_dsi0_pll PCLK_MUX_0_CLK>;
+				clock-names = "src_byte_clk", "src_pixel_clk";
+
+				pinctrl-names = "panel_active", "panel_suspend";
+				pinctrl-0 = <&sde_dsi_active /*&sde_te_active*/>;
+				pinctrl-1 = <&sde_dsi_suspend /*&sde_te_suspend*/>;
+				qcom,platform-reset-gpio = <&tlmm 88 0>;
+
+				qcom,dsi-panel = <&dsi_lt8912_1080_video>;
+				vddio-supply = <&pm8998_l14>;
+			};
+			
+			Driver:
+			drivers/gpu/drm/msm/dsi-staging/dsi_display.c:53:	{.compatible = "qcom,dsi-display"},
+			
+		LT8912:
+			DTS:
+				arch/arm64/boot/dts/qcom/sdm845-mtp.dtsi:588:		compatible = "lontium,lt8912";
+				
+				arch/arm64/boot/dts/qcom/sdm845-qupv3.dtsi:501:	qupv3_se10_i2c: i2c@a88000 {
+				
+				I2C总线：
+					qupv3_se10_i2c: i2c@a88000 {
+						compatible = "qcom,i2c-geni";
+						reg = <0xa88000 0x4000>;
+						interrupts = <GIC_SPI 355 0>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						clock-names = "se-clk", "m-ahb", "s-ahb";
+						clocks = <&clock_gcc GCC_QUPV3_WRAP1_S2_CLK>,
+							<&clock_gcc GCC_QUPV3_WRAP_1_M_AHB_CLK>,
+							<&clock_gcc GCC_QUPV3_WRAP_1_S_AHB_CLK>;
+						dmas = <&gpi_dma1 0 2 3 64 0>,
+							<&gpi_dma1 1 2 3 64 0>;
+						dma-names = "tx", "rx";
+						pinctrl-names = "default", "sleep";
+						pinctrl-0 = <&qupv3_se10_i2c_active>;
+						pinctrl-1 = <&qupv3_se10_i2c_sleep>;
+						qcom,wrapper-core = <&qupv3_1>;
+						status = "disabled";
+					};
+				
+				&qupv3_se10_i2c {
+					status = "ok";
+					qcom,clk-freq-out = <100000>;
+					lt8912@48 {
+						compatible = "lontium,lt8912";g
+						reg = <0x48>;
+						//lt,index = <0>;
+						lt,reset-gpio = <&tlmm 42 0x00>;
+						lt,pwren-gpio = <&tlmm 50 0x00>;
+						//lt,hpd-gpio = <&tlmm 44 0x00>;
+						interrupt-parent = <&tlmm>;
+						interrupts = <44 0>;
+						interrupt-names = "hdmi_hpd_irq1";
+					};
+				};
+				
+			Drvier:
+				drivers/gpu/drm/bridge/lt8912/lt8912.c:111:	{ .compatible = "lontium,lt8912"},
+				
+				
+				
+				
+			
+			
+			
+			Key:
+				arch/arm/boot/dts/qcom-msm8960.dtsi:158:					compatible = "qcom,pm8921-pwrkey";
+				drivers/input/misc/pmic8xxx-pwrkey.c:189:	{ .compatible = "qcom,pm8921-pwrkey" },
+
+=============================================================================
+给高通提case：
+
+  MSM8953.LA.2.0.2-00030-STD.PROD-1  
+
+https://qualcomm-cdmatech-support.my.salesforce.com/500?fcf=00B30000005Fa5K
+
+  gaoxiang1026@thundersoft.com
+  Gx160209
+
+
+高通文档下载：
+https://createpoint.qti.qualcomm.com/dashboard/public/productkit#public/product-kit/search
+
+liuyang0626@thundersoft.com
+Ly2717++
+
+
+
+=============================================================================
+Is there a way such as factory tools to test some basic function.
+we need a tool to test some bassic functions in the production stage.
+
+
+Hi QC,
+
+we need a tool to do some bassic tests (factory tools) in the production stage.
+Are there any tools and docs we can refer to?
+
+
+Thank you.
+
+=============================================================================
+LED子系统：
+	https://blog.csdn.net/weixin_30767921/article/details/98441503
+	
+extcon模块：可以用来检测外部的链接
+	extcon-usb-gpio.c：可以用来检测外部USB的链接状态：ID ，VBUS
+	extcon-gpio.c：可以用来检测外部的GPIO链接
+	
+GPIO_KEY:
+	
+	volume_up
+	
+	drivers/input/keyboard/gpio_keys.c
+	
+	设备节点路径：
+	/sys/devices/platform/soc/soc:gpio_keys
+	
+	获取event事件：
+	getevent -lr /dev/input/event0
+	
+Power_key:
+
+
+Volume_down:
+	arch/arm64/boot/dts/qcom/pmi8998.dtsi
+		qcom,power-on@800 {
+			compatible = "qcom,qpnp-power-on";
+			reg = <0x800 0x100>;
+		};
+	
+	drivers/input/misc/qpnp-power-on.c
+		compatible = "qcom,qpnp-power-on";
+		
+=============================================================================
+
+pr_err
+	pr_debug("===== %s LED register dump start =====\n", led->cdev.name);
+
+dev_err
+	dev_err(&led->pdev->dev,"WLED read sink reg failed(%d)\n", rc);
+
+
+=============================================================================
+626 LK
+845 UEFI
+
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
+=============================================================================
