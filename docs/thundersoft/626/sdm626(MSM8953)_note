@@ -1,3 +1,5 @@
+
+APQ8053
 =============================================================================
 Code:
 626：
@@ -121,8 +123,8 @@ SPI Driver:
 
 
 USB：
-	arch/arm/boot/dts/qcom/msm8953.dtsi:2253:		compatible = "qcom,qusb2phy";
-	drivers/usb/phy/phy-msm-qusb.c:1385:	{ .compatible = "qcom,qusb2phy", },
+	arch/arm/boot/dts/qcom/msm8953.dtsi:2140:		compatible = "qcom,dwc-usb3-msm";
+	drivers/usb/dwc3/dwc3-msm.c:4085:		.compatible = "qcom,dwc-usb3-msm",
 
 
 
@@ -408,9 +410,77 @@ USB:
 	3.即可进入fastboot模式
 
 =============================================================================
+防止休眠：
+echo 1 > /sys/power/wake_lock
+echo 1 > /proc/sys/kernel/printk
 =============================================================================
+
+芯片的更换：
+HDMI：
+LT8912 -》 LT9611
+
+Ethernet：USB转千兆网卡
+免驱动
+ax88179 -》 RTL8153B-VB-CG
+
 =============================================================================
+
+/sys/devices/soc/7000000.ssusb/7000000.dwc3/udc/7000000.dwc3
+
+
+
 =============================================================================
+static int mdss_edp_irq_setup(struct mdss_edp_drv_pdata *edp_drv)
+{
+	int ret = 0;
+
+	edp_drv->gpio_panel_hpd = of_get_named_gpio_flags(
+			edp_drv->pdev->dev.of_node, "gpio-panel-hpd", 0,
+			&edp_drv->hpd_flags);
+
+	if (!gpio_is_valid(edp_drv->gpio_panel_hpd)) {
+		pr_err("%s gpio_panel_hpd %d is not valid ", __func__,
+				edp_drv->gpio_panel_hpd);
+		return -ENODEV;
+	}
+
+	ret = gpio_request(edp_drv->gpio_panel_hpd, "edp_hpd_irq_gpio");
+	if (ret) {
+		pr_err("%s unable to request gpio_panel_hpd %d", __func__,
+				edp_drv->gpio_panel_hpd);
+		return -ENODEV;
+	}
+
+	ret = gpio_tlmm_config(GPIO_CFG(
+					edp_drv->gpio_panel_hpd,
+					1,
+					GPIO_CFG_INPUT,
+					a,
+					GPIO_CFG_2MA),
+					GPIO_CFG_ENABLE);
+	if (ret) {
+		pr_err("%s: unable to config tlmm = %d\n", __func__,
+				edp_drv->gpio_panel_hpd);
+		gpio_free(edp_drv->gpio_panel_hpd);
+		return -ENODEV;
+	}
+
+	ret = gpio_direction_input(edp_drv->gpio_panel_hpd);
+	if (ret) {
+		pr_err("%s unable to set direction for gpio_panel_hpd %d",
+				__func__, edp_drv->gpio_panel_hpd);
+		return -ENODEV;
+	}
+
+	mdss_edp_hw.ptr = (void *)(edp_drv);
+
+	if (edp_drv->mdss_util->register_irq(&mdss_edp_hw))
+		pr_err("%s: mdss_register_irq failed.\n", __func__);
+
+
+	return 0;
+}
+
 =============================================================================
 =============================================================================
 =============================================================================

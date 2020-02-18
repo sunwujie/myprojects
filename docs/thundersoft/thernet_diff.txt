@@ -1,0 +1,44 @@
+msm8953_64:/ # dmesg | grep qinxb                                              
+[    0.000000] Linux version 3.18.44-perf-g8982f00-dirty (qinxb@qinxb-HP-EliteDesk-880-G5-TWR) (gcc version 4.9 20150123 (prerelease) (GCC) ) #33 SMP PREEMPT Wed Feb 5 16:16:30 CST 2020
+[    2.423062] qinxb:supply power start 
+[    2.425712] qinxb:supply power end 
+[    2.429183] qinxb: 8192 probe 
+[    2.432501] qinxb: 8192 reset pgpio 
+[    2.443070] qinxb: 8192 probe finished 
+[    4.425344] qinxb: dwc3_probe enter 
+[    4.428417] qinxb: dwc3_host_init 
+[    4.501648] qinxb: xhci_plat_probe enter 
+[    4.504631] xhci-hcd xhci-hcd.0.auto: qinxb: usb_add_hcd enter : xHCI Host Controller
+[    4.532466] xhci-hcd xhci-hcd.0.auto: qinxb: usb_add_hcd enter : xHCI Host Controller
+
+
+msm8953_64:/sys/devices/soc/7000000.ssusb/7000000.dwc3 # ls
+driver          gadget   power     udc    xhci-hcd.0.auto 
+driver_override modalias subsystem uevent 
+msm8953_64:/sys/devices/soc/7000000.ssusb/7000000.dwc3 #
+
+
+
+
+
+
+[    0.000000] Linux version 3.18.44-perf-g8982f00-dirty (qinxb@qinxb-HP-EliteDesk-880-G5-TWR) (gcc version 4.9 20150123 (prerelease) (GCC) ) #33 SMP PREEMPT Wed Feb 5 16:16:30 CST 2020
+[    2.412820] qinxb:supply power start 
+[    2.415470] qinxb:supply power end 
+[    2.418939] qinxb: 8192 probe 
+[    2.422281] qinxb: 8192 reset pgpio 
+[    2.432832] qinxb: 8192 probe finished 
+[    4.416307] qinxb: dwc3_probe enter 
+[    4.419371] qinxb: dwc3_host_init 
+
+
+
+[    4.608675] apc_mem_acc_corner: disabling
+[    4.611638] gfx_mem_acc_corner: disabling
+[    4.615662] adv_vreg: disabling
+[    4.618773] vreg_1v8: disabling
+[    4.621882] hdmi_3v3: disabling
+[    4.625004] hdmi_5v: disabling
+[    4.628052] ethernet_1v8: disabling
+[    4.631516] ethernet_3v3: disabling
+[    4.635020] clock_late_init: Removing enables held for handed-off clocks
