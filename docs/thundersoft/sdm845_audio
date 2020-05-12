@@ -1,0 +1,1084 @@
+======================================================================================
+常用的节点路径：
+ls /sys/kernel/debug/asoc 
+codecs dais platforms sdm845-tavil-snd-card
+
+
+sdm845:/sys/kernel/debug/asoc # cat codecs                                     
+btfmslim_slave
+tavil_codec
+soc:qcom,msm-ext-disp:qcom,msm-
+soc:qcom,msm-stub-codec
+snd-soc-dummy
+sdm845:/sys/kernel/debug/asoc #
+
+
+sdm845:/sys/kernel/debug/asoc # cat dais
+btfm_bt_split_a2dp_slim_rx
+btfm_bt_sco_a2dp_slim_rx
+btfm_bt_sco_slim_tx
+btfm_fm_slim_tx
+tavil_mad1
+tavil_vifeedback
+tavil_rx4
+tavil_tx3
+tavil_rx3
+tavil_tx2
+tavil_rx2
+tavil_tx1
+tavil_rx1
+msm-dai-slim
+msm_dp_audio_codec_rx_dai
+msm_hdmi_audio_codec_rx_dai
+msm-stub-tx
+msm-stub-rx
+soc:qcom,msm-dai-q6-dp
+soc:qcom,msm-dai-q6-hdmi
+soc:qcom,msm-dai-tdm-quin-tx:qc
+soc:qcom,msm-dai-tdm-quin-rx:qc
+soc:qcom,msm-dai-tdm-quat-tx:qc
+soc:qcom,msm-dai-tdm-quat-rx:qc
+soc:qcom,msm-dai-tdm-tert-tx:qc
+soc:qcom,msm-dai-tdm-tert-rx:qc
+soc:qcom,msm-dai-tdm-sec-tx:qco
+soc:qcom,msm-dai-tdm-sec-rx:qco
+soc:qcom,msm-dai-tdm-pri-tx:qco
+soc:qcom,msm-dai-tdm-pri-rx:qco
+soc:qcom,msm-dai-mi2s:qcom,msm-
+soc:qcom,msm-dai-mi2s:qcom,msm-
+soc:qcom,msm-dai-mi2s:qcom,msm-
+soc:qcom,msm-dai-mi2s:qcom,msm-
+soc:qcom,msm-dai-mi2s:qcom,msm-
+soc:qcom,msm-dai-mi2s:qcom,msm-
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-quin-auxpcm
+soc:qcom,msm-quat-auxpcm
+soc:qcom,msm-tert-auxpcm
+soc:qcom,msm-sec-auxpcm
+soc:qcom,msm-pri-auxpcm
+MultiMedia20
+MultiMedia19
+MultiMedia18
+MultiMedia17
+VoiceMMode2
+VoiceMMode1
+MultiMedia16
+MultiMedia15
+MultiMedia14
+MultiMedia13
+MultiMedia12
+MultiMedia11
+MultiMedia10
+LSM8
+LSM7
+LSM6
+LSM5
+LSM4
+LSM3
+LSM2
+LSM1
+QCHAT
+MultiMedia9
+VOICE2_STUB
+VOLTE_STUB
+CPE_LSM_NOHOST
+DTMF_RX_HOSTLESS
+QUAT_TDM_RX_7_HOSTLESS
+QUAT_TDM_TX_7_HOSTLESS
+QUAT_TDM_RX_6_HOSTLESS
+QUAT_TDM_TX_6_HOSTLESS
+QUAT_TDM_RX_5_HOSTLESS
+QUAT_TDM_TX_5_HOSTLESS
+QUAT_TDM_RX_4_HOSTLESS
+QUAT_TDM_TX_4_HOSTLESS
+QUAT_TDM_RX_3_HOSTLESS
+QUAT_TDM_TX_3_HOSTLESS
+QUAT_TDM_RX_2_HOSTLESS
+QUAT_TDM_TX_2_HOSTLESS
+QUAT_TDM_RX_1_HOSTLESS
+QUAT_TDM_TX_1_HOSTLESS
+QUAT_TDM_RX_0_HOSTLESS
+QUAT_TDM_TX_0_HOSTLESS
+TERT_TDM_RX_7_HOSTLESS
+TERT_TDM_TX_7_HOSTLESS
+TERT_TDM_RX_6_HOSTLESS
+TERT_TDM_TX_6_HOSTLESS
+TERT_TDM_RX_5_HOSTLESS
+TERT_TDM_TX_5_HOSTLESS
+TERT_TDM_RX_4_HOSTLESS
+TERT_TDM_TX_4_HOSTLESS
+TERT_TDM_RX_3_HOSTLESS
+TERT_TDM_TX_3_HOSTLESS
+TERT_TDM_RX_2_HOSTLESS
+TERT_TDM_TX_2_HOSTLESS
+TERT_TDM_RX_1_HOSTLESS
+TERT_TDM_TX_1_HOSTLESS
+TERT_TDM_RX_0_HOSTLESS
+TERT_TDM_TX_0_HOSTLESS
+SEC_TDM_RX_7_HOSTLESS
+SEC_TDM_TX_7_HOSTLESS
+SEC_TDM_RX_6_HOSTLESS
+SEC_TDM_TX_6_HOSTLESS
+SEC_TDM_RX_5_HOSTLESS
+SEC_TDM_TX_5_HOSTLESS
+SEC_TDM_RX_4_HOSTLESS
+SEC_TDM_TX_4_HOSTLESS
+SEC_TDM_RX_3_HOSTLESS
+SEC_TDM_TX_3_HOSTLESS
+SEC_TDM_RX_2_HOSTLESS
+SEC_TDM_TX_2_HOSTLESS
+SEC_TDM_RX_1_HOSTLESS
+SEC_TDM_TX_1_HOSTLESS
+SEC_TDM_RX_0_HOSTLESS
+SEC_TDM_TX_0_HOSTLESS
+PRI_TDM_RX_7_HOSTLESS
+PRI_TDM_TX_7_HOSTLESS
+PRI_TDM_RX_6_HOSTLESS
+PRI_TDM_TX_6_HOSTLESS
+PRI_TDM_RX_5_HOSTLESS
+PRI_TDM_TX_5_HOSTLESS
+PRI_TDM_RX_4_HOSTLESS
+PRI_TDM_TX_4_HOSTLESS
+PRI_TDM_RX_3_HOSTLESS
+PRI_TDM_TX_3_HOSTLESS
+PRI_TDM_RX_2_HOSTLESS
+PRI_TDM_TX_2_HOSTLESS
+PRI_TDM_RX_1_HOSTLESS
+PRI_TDM_TX_1_HOSTLESS
+PRI_TDM_RX_0_HOSTLESS
+PRI_TDM_TX_0_HOSTLESS
+INT3_MI2S_TX_HOSTLESS
+INT4_MI2S_RX_HOSTLESS
+INT0_MI2S_RX_HOSTLESS
+QUAT_MI2S_RX_HOSTLESS
+QUAT_MI2S_TX_HOSTLESS
+TERT_MI2S_RX_HOSTLESS
+TERT_MI2S_TX_HOSTLESS
+SEC_MI2S_RX_HOSTLESS
+SEC_MI2S_TX_HOSTLESS
+PRI_MI2S_RX_HOSTLESS
+PRI_MI2S_TX_HOSTLESS
+SEC_I2S_RX_HOSTLESS
+MI2S_TX_HOSTLESS
+VOICE_STUB
+SEC_AUXPCM_TX_HOSTLESS
+SEC_AUXPCM_RX_HOSTLESS
+AUXPCM_HOSTLESS
+HDMI_HOSTLESS
+AFE-PROXY
+USBAUDIO_HOSTLESS
+INT_HFP_BT_HOSTLESS
+INT_FM_HOSTLE
+sdm845:/sys/kernel/debug/asoc #
+
+
+sdm845:/sys/kernel/debug/asoc # cat platforms                                  
+soc:qcom,msm-pcm-voice
+soc:qcom,msm-voip-dsp
+soc:qcom,msm-pcm-dsp-noirq
+soc:qcom,msm-pcm-loopback
+soc:qcom,msm-lsm-client
+soc:qcom,msm-pcm-afe
+soc:qcom,msm-compress-dsp
+soc:qcom,msm-pcm-routing
+soc:qcom,msm-ultra-low-latency
+soc:qcom,msm-pcm-low-latency
+soc:qcom,msm-pcm
+soc:qcom,msm-pcm-hostless
+snd-soc-dummy
+
+
+sdm845:/sys/kernel/debug/asoc # cd sdm845-tavil-snd-card
+sdm845:/sys/kernel/debug/asoc/sdm845-tavil-snd-card # ls
+AUXPCM\ Hostless          codec:btfmslim_slave                    
+HDMI_RX_HOSTLESS          codec:soc:qcom,msm-ext-disp:qcom,msm-   
+Listen\ 1\ Audio\ Service codec:soc:qcom,msm-stub-codec           
+Listen\ 2\ Audio\ Service codec:tavil_codec                       
+Listen\ 3\ Audio\ Service dapm                                    
+Listen\ 4\ Audio\ Service dapm_pop_time                           
+Listen\ 5\ Audio\ Service platform:soc:qcom,msm-compress-dsp      
+Listen\ 6\ Audio\ Service platform:soc:qcom,msm-lsm-client        
+Listen\ 7\ Audio\ Service platform:soc:qcom,msm-pcm               
+Listen\ 8\ Audio\ Service platform:soc:qcom,msm-pcm-afe           
+MSM\ VoIP                 platform:soc:qcom,msm-pcm-dsp-noirq     
+SDM845\ ASM\ Loopback     platform:soc:qcom,msm-pcm-hostless      
+SDM845\ Compress1         platform:soc:qcom,msm-pcm-loopback      
+SDM845\ Compress2         platform:soc:qcom,msm-pcm-low-latency   
+SDM845\ Compress4         platform:soc:qcom,msm-pcm-routing       
+SDM845\ Compress5         platform:soc:qcom,msm-pcm-voice         
+SDM845\ Compress6         platform:soc:qcom,msm-ultra-low-latency 
+SDM845\ Compress7         platform:soc:qcom,msm-voip-dsp          
+SDM845\ Compress8         soc:qcom,msm-dai-fe                     
+SDM845\ LowLatency        soc:qcom,msm-dai-mi2s:qcom,msm-         
+SDM845\ Media1            soc:qcom,msm-dai-q6-dp                  
+SDM845\ Media2            soc:qcom,msm-dai-q6:qcom,msm-da         
+SDM845\ Media9            soc:qcom,msm-dai-tdm-pri-rx:qco         
+SDM845\ MultiMedia10      soc:qcom,msm-dai-tdm-pri-tx:qco         
+SDM845\ ULL               soc:qcom,msm-dai-tdm-quat-rx:qc         
+SDM845\ ULL_NOIRQ         soc:qcom,msm-dai-tdm-quat-tx:qc         
+SDM845\ ULL_NOIRQ_2       soc:qcom,msm-dai-tdm-sec-rx:qco         
+SLIMBUS_0\ Hostless       soc:qcom,msm-dai-tdm-sec-tx:qco         
+SLIMBUS_1\ Hostless       soc:qcom,msm-dai-tdm-tert-rx:qc         
+SLIMBUS_3\ Hostless       soc:qcom,msm-dai-tdm-tert-tx:qc         
+SLIMBUS_4\ Hostless       soc:qcom,msm-pri-auxpcm                 
+SLIMBUS_8\ Hostless       soc:qcom,msm-quat-auxpcm                
+USB\ Audio\ Hostless      soc:qcom,msm-sec-auxpcm                 
+VoiceMMode1               soc:qcom,msm-tert-auxpcm                
+VoiceMMode2        
+       
+sdm845:/sys/kernel/debug/asoc/sdm845-tavil-snd-card #
+sdm845:/sys/kernel/debug/asoc/sdm845-tavil-snd-card # ls --color -1
+AUXPCM\ Hostless
+HDMI_RX_HOSTLESS
+Listen\ 1\ Audio\ Service
+Listen\ 2\ Audio\ Service
+Listen\ 3\ Audio\ Service
+Listen\ 4\ Audio\ Service
+Listen\ 5\ Audio\ Service
+Listen\ 6\ Audio\ Service
+Listen\ 7\ Audio\ Service
+Listen\ 8\ Audio\ Service
+MSM\ VoIP
+SDM845\ ASM\ Loopback
+SDM845\ Compress1
+SDM845\ Compress2
+SDM845\ Compress4
+SDM845\ Compress5
+SDM845\ Compress6
+SDM845\ Compress7
+SDM845\ Compress8
+SDM845\ LowLatency
+SDM845\ Media1
+SDM845\ Media2
+SDM845\ Media9
+SDM845\ MultiMedia10
+SDM845\ ULL
+SDM845\ ULL_NOIRQ
+SDM845\ ULL_NOIRQ_2
+SLIMBUS_0\ Hostless
+SLIMBUS_1\ Hostless
+SLIMBUS_3\ Hostless
+SLIMBUS_4\ Hostless
+SLIMBUS_8\ Hostless
+USB\ Audio\ Hostless
+VoiceMMode1
+VoiceMMode2
+codec:btfmslim_slave
+codec:soc:qcom,msm-ext-disp:qcom,msm-
+codec:soc:qcom,msm-stub-codec
+codec:tavil_codec
+dapm
+dapm_pop_time
+platform:soc:qcom,msm-compress-dsp
+platform:soc:qcom,msm-lsm-client
+platform:soc:qcom,msm-pcm
+platform:soc:qcom,msm-pcm-afe
+platform:soc:qcom,msm-pcm-dsp-noirq
+platform:soc:qcom,msm-pcm-hostless
+platform:soc:qcom,msm-pcm-loopback
+platform:soc:qcom,msm-pcm-low-latency
+platform:soc:qcom,msm-pcm-routing
+platform:soc:qcom,msm-pcm-voice
+platform:soc:qcom,msm-ultra-low-latency
+platform:soc:qcom,msm-voip-dsp
+soc:qcom,msm-dai-fe
+soc:qcom,msm-dai-mi2s:qcom,msm-
+soc:qcom,msm-dai-q6-dp
+soc:qcom,msm-dai-q6:qcom,msm-da
+soc:qcom,msm-dai-tdm-pri-rx:qco
+soc:qcom,msm-dai-tdm-pri-tx:qco
+soc:qcom,msm-dai-tdm-quat-rx:qc
+soc:qcom,msm-dai-tdm-quat-tx:qc
+soc:qcom,msm-dai-tdm-sec-rx:qco
+soc:qcom,msm-dai-tdm-sec-tx:qco
+soc:qcom,msm-dai-tdm-tert-rx:qc
+soc:qcom,msm-dai-tdm-tert-tx:qc
+soc:qcom,msm-pri-auxpcm
+soc:qcom,msm-quat-auxpcm
+soc:qcom,msm-sec-auxpcm
+soc:qcom,msm-tert-auxpcm
+sdm845:/sys/kernel/debug/asoc/sdm845-tavil-snd-card #
+
+
+可以查看codes，dais，platforms等详细的信息
+
+声卡的设备节点：
+ ls /dev/snd/
+/dev/snd/comprC0D15 /dev/snd/hwC0D3017 /dev/snd/pcmC0D18p 
+/dev/snd/comprC0D28 /dev/snd/hwC0D3033 /dev/snd/pcmC0D19c 
+/dev/snd/comprC0D29 /dev/snd/hwC0D32   /dev/snd/pcmC0D19p 
+/dev/snd/comprC0D30 /dev/snd/hwC0D33   /dev/snd/pcmC0D1c  
+/dev/snd/comprC0D31 /dev/snd/hwC0D35   /dev/snd/pcmC0D1p  
+/dev/snd/comprC0D32 /dev/snd/hwC0D39   /dev/snd/pcmC0D20c 
+/dev/snd/comprC0D8  /dev/snd/hwC0D40   /dev/snd/pcmC0D21c 
+/dev/snd/controlC0  /dev/snd/hwC0D41   /dev/snd/pcmC0D22c 
+/dev/snd/hwC0D10    /dev/snd/hwC0D42   /dev/snd/pcmC0D23c 
+/dev/snd/hwC0D1000  /dev/snd/hwC0D43   /dev/snd/pcmC0D24c 
+/dev/snd/hwC0D103   /dev/snd/hwC0D44   /dev/snd/pcmC0D25c 
+/dev/snd/hwC0D104   /dev/snd/hwC0D45   /dev/snd/pcmC0D26c 
+/dev/snd/hwC0D11    /dev/snd/hwC0D46   /dev/snd/pcmC0D27c 
+/dev/snd/hwC0D12    /dev/snd/hwC0D48   /dev/snd/pcmC0D27p 
+/dev/snd/hwC0D13    /dev/snd/hwC0D49   /dev/snd/pcmC0D2c  
+/dev/snd/hwC0D136   /dev/snd/hwC0D55   /dev/snd/pcmC0D2p  
+/dev/snd/hwC0D137   /dev/snd/hwC0D56   /dev/snd/pcmC0D33c 
+/dev/snd/hwC0D138   /dev/snd/hwC0D71   /dev/snd/pcmC0D33p 
+/dev/snd/hwC0D139   /dev/snd/hwC0D72   /dev/snd/pcmC0D34c 
+/dev/snd/hwC0D14    /dev/snd/hwC0D87   /dev/snd/pcmC0D35c 
+/dev/snd/hwC0D140   /dev/snd/hwC0D88   /dev/snd/pcmC0D36p 
+/dev/snd/hwC0D141   /dev/snd/hwC0D9    /dev/snd/pcmC0D37c 
+/dev/snd/hwC0D142   /dev/snd/pcmC0D0c  /dev/snd/pcmC0D38c 
+/dev/snd/hwC0D15    /dev/snd/pcmC0D0p  /dev/snd/pcmC0D38p 
+/dev/snd/hwC0D16    /dev/snd/pcmC0D10c /dev/snd/pcmC0D39c 
+/dev/snd/hwC0D2     /dev/snd/pcmC0D10p /dev/snd/pcmC0D39p 
+/dev/snd/hwC0D20    /dev/snd/pcmC0D11c /dev/snd/pcmC0D3c  
+/dev/snd/hwC0D21    /dev/snd/pcmC0D11p /dev/snd/pcmC0D3p  
+/dev/snd/hwC0D22    /dev/snd/pcmC0D12c /dev/snd/pcmC0D4p  
+/dev/snd/hwC0D24    /dev/snd/pcmC0D12p /dev/snd/pcmC0D5c  
+/dev/snd/hwC0D25    /dev/snd/pcmC0D13c /dev/snd/pcmC0D5p  
+/dev/snd/hwC0D26    /dev/snd/pcmC0D13p /dev/snd/pcmC0D6p  
+/dev/snd/hwC0D27    /dev/snd/pcmC0D14c /dev/snd/pcmC0D7c  
+/dev/snd/hwC0D28    /dev/snd/pcmC0D16c /dev/snd/pcmC0D9c  
+/dev/snd/hwC0D29    /dev/snd/pcmC0D16p /dev/snd/pcmC0D9p  
+/dev/snd/hwC0D3     /dev/snd/pcmC0D17c /dev/snd/timer     
+/dev/snd/hwC0D30    /dev/snd/pcmC0D17p
+
+
+
+
+HDMI DAI:
+techpack/audio/asoc/msm-dai-q6-hdmi-v2.c
+
+static struct snd_soc_dai_driver msm_dai_q6_hdmi_hdmi_rx_dai = {
+	.playback = {
+		.stream_name = "HDMI Playback",
+		.aif_name = "HDMI",
+		.rates = SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |
+			 SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |
+			 SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |
+			 SNDRV_PCM_RATE_192000,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE |
+			   SNDRV_PCM_FMTBIT_S24_LE |
+			   SNDRV_PCM_FMTBIT_S24_3LE,
+		.channels_min = 2,
+		.channels_max = 8,
+		.rate_max = 192000,
+		.rate_min = 48000,
+	},
+	.ops = &msm_dai_q6_hdmi_ops,
+	.id = HDMI_RX,
+	.probe = msm_dai_q6_hdmi_dai_probe,
+	.remove = msm_dai_q6_hdmi_dai_remove,
+};
+
+
+static const struct snd_soc_dapm_widget msm_qdsp6_widgets[] = {
+	SND_SOC_DAPM_AIF_OUT("HDMI", "HDMI Playback", 0, 0, 0, 0), //wname=HDMI sname="HDMI Playback"
+	}
+
+======================================================================================
+HDMI LT9611 Audio: (第二路I2S:I2S1)
+
+tinymix "SEC_MI2S_RX Channels" "Two"
+tinymix "SEC_MI2S_RX SampleRate" "KHZ_48"
+tinymix "SEC_MI2S_RX Format" "S16_LE"
+tinymix "SEC_MI2S_RX Audio Mixer MultiMedia1" "1"
+tinyplay /data/amic42.wav -D 0 -d 0
+
+
+======================================================================================
+WCD9340 Mic: (SLIMBUS)
+
+调试mic：双通道
+
+tinymix  'AIF1_CAP Mixer SLIM TX5' 1
+tinymix  'AIF1_CAP Mixer SLIM TX6' 1
+tinymix  'CDC_IF TX5 MUX' 'DEC5'
+tinymix  'CDC_IF TX6 MUX' 'DEC6'
+tinymix  'SLIM_0_TX Channels' 'Two'
+tinymix  'ADC MUX5' 'AMIC'
+tinymix  'AMIC MUX5' 'ADC3'
+tinymix  'DEC5 Volume' 200
+tinymix  'ADC MUX6' 'AMIC'
+tinymix  'AMIC MUX6' 'ADC4'
+tinymix  'DEC6 Volume' 200
+tinymix  'MultiMedia1 Mixer SLIM_0_TX' 1
+
+tinycap /data/amic2.wav -c 2
+
+单声道测试： （amic4）：
+tinymix  'AIF1_CAP Mixer SLIM TX6' 1
+tinymix  'CDC_IF TX6 MUX' 'DEC6'
+tinymix  'SLIM_0_TX Channels' 'One'
+tinymix  'ADC MUX6' 'AMIC'
+tinymix  'AMIC MUX6' 'ADC3'
+tinymix  'DEC6 Volume' 200
+tinymix  'MultiMedia1 Mixer SLIM_0_TX' 1
+
+tinycap /data/amic4.wav -c 1
+
+单声道测试： （amic3）：
+tinymix  'AIF1_CAP Mixer SLIM TX5' 1
+tinymix  'CDC_IF TX5 MUX' 'DEC5'
+tinymix  'SLIM_0_TX Channels' 'One'
+tinymix  'ADC MUX5' 'AMIC'
+tinymix  'AMIC MUX5' 'ADC3'
+tinymix  'DEC5 Volume' 200
+tinymix  'MultiMedia1 Mixer SLIM_0_TX' 1
+
+tinycap /data/amic3.wav -c 1
+======================================================================================
+====================================================================
+
+tinymix  'AIF1_CAP Mixer SLIM TX0' 1
+tinymix  'AIF1_CAP Mixer SLIM TX1' 1
+tinymix  'CDC_IF TX5 MUX' 'DEC5'
+tinymix  'CDC_IF TX6 MUX' 'DEC6'
+tinymix  'SLIM_0_TX Channels' 'Two'
+tinymix  'ADC MUX0' 'AMIC'
+tinymix  'AMIC MUX0' 'ADC3'
+tinymix  'DEC5 Volume' 84
+tinymix  'ADC MUX1' 'AMIC'
+tinymix  'AMIC MUX1' 'ADC2'
+tinymix  'DEC Volume' 84
+tinymix  'MultiMedia1 Mixer SLIM_0_TX' 1
+
+tinycap /data/amic2.wav -c 2
+
+
+tinymix  'AIF1_CAP Mixer SLIM TX0' 1
+tinymix  'AIF1_CAP Mixer SLIM TX1' 1
+tinymix  'CDC_IF TX0 MUX' 'DEC0'
+tinymix  'CDC_IF TX1 MUX' 'DEC1'
+tinymix  'SLIM_0_TX Channels' 'Two'
+tinymix  'ADC MUX0' 'AMIC'
+tinymix  'AMIC MUX0' 'ADC1'
+tinymix  'DEC0 Volume' 84
+tinymix  'ADC MUX1' 'AMIC'
+tinymix  'AMIC MUX1' 'ADC2'
+tinymix  'DEC1 Volume' 84
+tinymix  'MultiMedia1 Mixer SLIM_0_TX' 1
+tinycap /data/amic2.wav -c 2
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+cat /proc/asound/sdm845tavilsndc/pcm*/info
+
+card: 0
+device: 0
+subdevice: 0
+stream: CAPTURE
+id: MultiMedia1 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 0
+subdevice: 0
+stream: PLAYBACK
+id: MultiMedia1 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 10
+subdevice: 0
+stream: CAPTURE
+id: SLIMBUS_1 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 10
+subdevice: 0
+stream: PLAYBACK
+id: SLIMBUS_1 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 11
+subdevice: 0
+stream: CAPTURE
+id: SLIMBUS_3 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 11
+subdevice: 0
+stream: PLAYBACK
+id: SLIMBUS_3 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 12
+subdevice: 0
+stream: CAPTURE
+id: SLIMBUS_4 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 12
+subdevice: 0
+stream: PLAYBACK
+id: SLIMBUS_4 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 13
+subdevice: 0
+stream: CAPTURE
+id: MultiMedia5 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 13
+subdevice: 0
+stream: PLAYBACK
+id: MultiMedia5 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 14
+subdevice: 0
+stream: CAPTURE
+id: Listen 1 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 16
+subdevice: 0
+stream: CAPTURE
+id: MultiMedia10 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 16
+subdevice: 0
+stream: PLAYBACK
+id: MultiMedia10 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 17
+subdevice: 0
+stream: CAPTURE
+id: MM_NOIRQ (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 17
+subdevice: 0
+stream: PLAYBACK
+id: MM_NOIRQ (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 18
+subdevice: 0
+stream: PLAYBACK
+id: HDMI_RX_HOSTLESS (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 19
+subdevice: 0
+stream: CAPTURE
+id: VoiceMMode2 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 19
+subdevice: 0
+stream: PLAYBACK
+id: VoiceMMode2 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 1
+subdevice: 0
+stream: CAPTURE
+id: MultiMedia2 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 1
+subdevice: 0
+stream: PLAYBACK
+id: MultiMedia2 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 20
+subdevice: 0
+stream: CAPTURE
+id: Listen 2 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 21
+subdevice: 0
+stream: CAPTURE
+id: Listen 3 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 22
+subdevice: 0
+stream: CAPTURE
+id: Listen 4 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 23
+subdevice: 0
+stream: CAPTURE
+id: Listen 5 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 24
+subdevice: 0
+stream: CAPTURE
+id: Listen 6 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 25
+subdevice: 0
+stream: CAPTURE
+id: Listen 7 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 26
+subdevice: 0
+stream: CAPTURE
+id: Listen 8 Audio Service (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 27
+subdevice: 0
+stream: CAPTURE
+id: MultiMedia9 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 27
+subdevice: 0
+stream: PLAYBACK
+id: MultiMedia9 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 2
+subdevice: 0
+stream: CAPTURE
+id: VoiceMMode1 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 2
+subdevice: 0
+stream: PLAYBACK
+id: VoiceMMode1 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 33
+subdevice: 0
+stream: CAPTURE
+id: MM_NOIRQ_2 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 33
+subdevice: 0
+stream: PLAYBACK
+id: MM_NOIRQ_2 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 34
+subdevice: 0
+stream: CAPTURE
+id: SLIMBUS8_HOSTLESS Capture (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 35
+subdevice: 0
+stream: CAPTURE
+id: Slimbus4 Capture tavil_vifeedback-35
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 36
+subdevice: 0
+stream: PLAYBACK
+id: SLIMBUS_2 Hostless Playback tavil_rx2-36
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 37
+subdevice: 0
+stream: CAPTURE
+id: SLIMBUS_2 Hostless Capture tavil_tx2-37
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 38
+subdevice: 0
+stream: CAPTURE
+id: MultiMedia6 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 38
+subdevice: 0
+stream: PLAYBACK
+id: MultiMedia6 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 39
+subdevice: 0
+stream: CAPTURE
+id: USB Audio Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 39
+subdevice: 0
+stream: PLAYBACK
+id: USB Audio Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 3
+subdevice: 0
+stream: CAPTURE
+id: VoIP (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 3
+subdevice: 0
+stream: PLAYBACK
+id: VoIP (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 4
+subdevice: 0
+stream: PLAYBACK
+id: MultiMedia3 (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 5
+subdevice: 0
+stream: CAPTURE
+id: SLIMBUS_0 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 5
+subdevice: 0
+stream: PLAYBACK
+id: SLIMBUS_0 Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 6
+subdevice: 0
+stream: PLAYBACK
+id: AFE-PROXY RX msm-stub-rx-6
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 7
+subdevice: 0
+stream: CAPTURE
+id: AFE-PROXY TX msm-stub-tx-7
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 9
+subdevice: 0
+stream: CAPTURE
+id: AUXPCM Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+card: 0
+device: 9
+subdevice: 0
+stream: PLAYBACK
+id: AUXPCM Hostless (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
+======================================================================================
